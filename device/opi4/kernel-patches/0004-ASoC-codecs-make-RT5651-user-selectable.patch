@@ -1,0 +1,15 @@
+From: Armbian (board-nanopi-m4v2-dts-add-sound-card.patch, Kconfig part)
+Subject: [PATCH] ASoC: codecs: make RT5651 user-selectable (Orange Pi 4 analog audio)
+
+---
+--- a/sound/soc/codecs/Kconfig	2026-11-14 22:23:59.418519571 +0500
++++ b/sound/soc/codecs/Kconfig	2026-11-14 22:23:59.428445511 +0500
+@@ -1757,7 +1757,7 @@
+ 	depends on I2C
+ 
+ config SND_SOC_RT5651
+-	tristate
++	tristate "Realtek RT5651 Codec"
+ 	depends on I2C
+ 
+ config SND_SOC_RT5659
