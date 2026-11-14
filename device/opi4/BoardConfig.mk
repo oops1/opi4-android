@@ -14,6 +14,11 @@ GD_SUPER_PARTITION_SIZE_MB := 3500
 
 include glodroid/configuration/common/board-common.mk
 
+# GloDroid stages the ramdisk at base+0x3300000 = 0x05300000, but our kernel Image is 59 MiB
+# (0x02080000..0x05bc0000), so 'bootm' decompressed the kernel over the first 8.8 MiB of the
+# ramdisk ("rootfs image is not initramfs"). Stage it at 0x10000000 instead (last option wins).
+BOARD_MKBOOTIMG_ARGS += --ramdisk_offset 0x0e000000
+
 # GPU: Mali-T860 MP4 (Midgard) -> Mesa Panfrost, OpenGL ES 3.1. No Vulkan driver for Midgard.
 BOARD_MESA3D_GALLIUM_DRIVERS := panfrost
 # Mesa >= 25 compiles Panfrost's internal shaders (libpan) with OpenCL C at build time.
