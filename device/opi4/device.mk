@@ -14,6 +14,7 @@ PRODUCT_COPY_FILES += \
 # Init scripts, device node permissions, module blocklist
 PRODUCT_COPY_FILES += \
     $(LOCAL_PATH)/etc/other.opi4.rc:$(TARGET_COPY_OUT_VENDOR)/etc/init/other.opi4.rc \
+    $(LOCAL_PATH)/etc/debug.opi4.rc:$(TARGET_COPY_OUT_VENDOR)/etc/init/debug.opi4.rc \
     $(LOCAL_PATH)/etc/uevent.device.rc:$(TARGET_COPY_OUT_VENDOR)/etc/uevent.device.rc \
     $(LOCAL_PATH)/etc/modules.blocklist:$(TARGET_COPY_OUT_VENDOR_DLKM)/lib/modules/modules.blocklist \
 

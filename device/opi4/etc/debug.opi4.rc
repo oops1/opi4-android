@@ -1,0 +1,10 @@
+# Bring-up aid (userdebug/eng only): mirror Android errors into the kernel log, so they show up on
+# the UART console next to kernel messages. Remove once the port is stable.
+service opi4_logcat_kmsg /system/bin/sh -c "/system/bin/logcat -b main,system,crash -v brief '*:E' 'netd:V' 'Netd:V' > /dev/kmsg"
+    user root
+    group root log
+    seclabel u:r:su:s0
+    disabled
+
+on post-fs-data && property:ro.debuggable=1
+    start opi4_logcat_kmsg
