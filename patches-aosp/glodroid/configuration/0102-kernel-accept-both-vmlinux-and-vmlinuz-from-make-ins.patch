@@ -1,21 +1,22 @@
-From e18b589e32d8b220e92d64a2f2e4e05a08786253 Mon Sep 17 00:00:00 2001
+From 172dc96a7598bbc5a59f1b6bc1919723c9b20e30 Mon Sep 17 00:00:00 2001
 From: opi4 <opi4@localhost>
 Date: Sat, 14 Nov 2026 22:21:08 +0500
 Subject: [PATCH] kernel: accept both vmlinux-* and vmlinuz-* from 'make
  install' on arm64
 
-Mainline arm64 installs the compressed Image.gz as vmlinuz-<release>; the a-16
-flow expected an uncompressed vmlinux-<release>. Decompress it when needed,
-the result is LZ4-packed for boot.img as before.
+Mainline arm64 'make install' may name the image vmlinuz-<release> (raw Image
+or Image.gz depending on the version); the a-16 flow expected vmlinux-<release>.
+Use whichever exists, decompressing only real gzip data; the result is
+LZ4-packed for boot.img as before.
 ---
- platform/tools/makefile_kernel.mk | 7 ++++++-
- 1 file changed, 6 insertions(+), 1 deletion(-)
+ platform/tools/makefile_kernel.mk | 11 ++++++++++-
+ 1 file changed, 10 insertions(+), 1 deletion(-)
 
 diff --git a/platform/tools/makefile_kernel.mk b/platform/tools/makefile_kernel.mk
-index 68c5fd1..5a6ea74 100644
+index 68c5fd1..55aed7e 100644
 --- a/platform/tools/makefile_kernel.mk
 +++ b/platform/tools/makefile_kernel.mk
-@@ -53,7 +53,12 @@ $(INSTALL_TARGET): $(BUILD_TARGET)
+@@ -53,7 +53,16 @@ $(INSTALL_TARGET): $(BUILD_TARGET)
  	@mv $(OUT_INSTALL_DIR)/modules/lib/modules/$${KERNELRELEASE} $(OUT_INSTALL_DIR)/modules/lib/modules/GloDroid
  
  ifeq ($(TARGET_ARCH),arm64)
@@ -23,8 +24,12 @@ index 68c5fd1..5a6ea74 100644
 +	@if [ -f $(OUT_INSTALL_DIR)/vmlinux-$${KERNELRELEASE} ]; then \
 +		mv $(OUT_INSTALL_DIR)/vmlinux-$${KERNELRELEASE} $(OUT_INSTALL_DIR)/vmlinux; \
 +	else \
-+		gzip -dc $(OUT_INSTALL_DIR)/vmlinuz-$${KERNELRELEASE} > $(OUT_INSTALL_DIR)/vmlinux && \
-+		rm -f $(OUT_INSTALL_DIR)/vmlinuz-$${KERNELRELEASE}; \
++		if gzip -t $(OUT_INSTALL_DIR)/vmlinuz-$${KERNELRELEASE} 2>/dev/null; then \
++			gzip -dc $(OUT_INSTALL_DIR)/vmlinuz-$${KERNELRELEASE} > $(OUT_INSTALL_DIR)/vmlinux; \
++			rm -f $(OUT_INSTALL_DIR)/vmlinuz-$${KERNELRELEASE}; \
++		else \
++			mv $(OUT_INSTALL_DIR)/vmlinuz-$${KERNELRELEASE} $(OUT_INSTALL_DIR)/vmlinux; \
++		fi; \
 +	fi
  	@lz4c -f -c1 $(OUT_INSTALL_DIR)/vmlinux $(OUT_INSTALL_DIR)/kernel &>>$@ || (cat $@.tmp && exit 1)
  else
