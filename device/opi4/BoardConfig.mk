@@ -8,6 +8,10 @@ BC_PATH := $(patsubst $(CURDIR)/%,%,$(dir $(abspath $(lastword $(MAKEFILE_LIST))
 GD_NO_DEFAULT_CAMERA := true
 GD_NO_DEFAULT_MODEM := true
 
+# super = system + system_ext + product + vendor + vendor_dlkm (~2.1 GB with the arm64 defconfig
+# module set). 16 GB eMMC leaves plenty for userdata, so give it headroom.
+GD_SUPER_PARTITION_SIZE_MB := 3500
+
 include glodroid/configuration/common/board-common.mk
 
 # GPU: Mali-T860 MP4 (Midgard) -> Mesa Panfrost, OpenGL ES 3.1. No Vulkan driver for Midgard.
