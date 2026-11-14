@@ -3,13 +3,27 @@
 #
 #   ./setup.sh manifest   - install the local manifest (then run: cd ~/aosp && repo sync -c -j8)
 #   ./setup.sh tree       - after the sync: link device/kernel, apply GloDroid a-16 + our patches
+#   ./setup.sh device     - copy device/opi4 into the tree again (after editing it here)
+#
+# The device dir is copied, not symlinked: soong's file finder does not follow symlinks,
+# so a symlinked AndroidProducts.mk is invisible to lunch.
 #
 # Env: AOSP=~/aosp  SRC=~/opi4 (holds linux/, glodroid-a16/)
 PORT=$(cd "$(dirname "$0")" && pwd)
 AOSP=${AOSP:-$HOME/aosp}
 SRC=${SRC:-$HOME/opi4}
 
+sync_device() {
+    mkdir -p $AOSP/vendor/devices-community
+    [ -L $AOSP/vendor/devices-community/opi4 ] && rm $AOSP/vendor/devices-community/opi4
+    rsync -a --delete $PORT/device/opi4/ $AOSP/vendor/devices-community/opi4/
+    echo "device/opi4 -> $AOSP/vendor/devices-community/opi4"
+}
+
 case "$1" in
+device)
+    sync_device
+    ;;
 manifest)
     mkdir -p $AOSP/.repo/local_manifests
     cp $PORT/manifests/opi4.xml $AOSP/.repo/local_manifests/opi4.xml
@@ -18,9 +32,8 @@ manifest)
 tree)
     [ -d $AOSP/glodroid/configuration ] || { echo "glodroid/ not synced yet: run '$0 manifest' and repo sync first"; exit 1; }
 
-    echo "== linking device and kernel"
-    mkdir -p $AOSP/vendor/devices-community
-    ln -sfn $PORT/device/opi4 $AOSP/vendor/devices-community/opi4
+    echo "== device and kernel"
+    sync_device
     ln -sfn $SRC/linux $AOSP/glodroid/kernel/mainline 2>/dev/null || { mkdir -p $AOSP/glodroid/kernel; ln -sfn $SRC/linux $AOSP/glodroid/kernel/mainline; }
 
     apply_dir() {   # $1 = patches root, $2 = project dir relative to AOSP
