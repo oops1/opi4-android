@@ -34,6 +34,7 @@ PKG_CONFIG_PATH=$HT/lib/pkgconfig:$HT/lib64/pkgconfig meson setup $W/mesa $AOSP/
   -Dplatforms= -Dglx=disabled -Degl=disabled -Dgbm=disabled -Dgles1=disabled -Dgles2=disabled \
   -Dgallium-drivers=panfrost -Dvulkan-drivers= -Dllvm=enabled -Dshared-llvm=enabled \
   -Dmesa-clc=enabled -Dinstall-mesa-clc=true -Dprecomp-compiler=enabled -Dinstall-precomp-compiler=true \
+  -Dmesa-clc-bundle-headers=enabled \
   -Dvalgrind=disabled -Dlibunwind=disabled -Dlmsensors=disabled -Dzstd=disabled > $W/mesa-setup.log 2>&1 \
   || { tail -30 $W/mesa-setup.log; exit 1; }
 ninja -C $W/mesa src/compiler/clc/mesa_clc src/compiler/spirv/vtn_bindgen2 src/panfrost/clc/panfrost_compile > $W/mesa-build.log 2>&1 \
