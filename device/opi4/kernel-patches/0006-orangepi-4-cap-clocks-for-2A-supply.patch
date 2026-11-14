@@ -1,0 +1,34 @@
+From: opi4-android
+Subject: [PATCH] arm64: dts: rockchip: orangepi-4: cap CPU/GPU clocks for a 2 A supply
+
+---
+--- a/arch/arm64/boot/dts/rockchip/rk3399-orangepi-4.dts	2026-11-15 04:21:14.793417161 +0500
++++ b/arch/arm64/boot/dts/rockchip/rk3399-orangepi-4.dts	2026-11-15 04:21:14.796917704 +0500
+@@ -1213,3 +1213,27 @@
+ 	status = "okay";
+ };
+ 
++
++/*
++ * Bring-up with a 5 V / 2 A supply: the board hard-hangs under full load (all 6 cores + GPU
++ * during Android's first boot). Cap clocks to about half to keep peak current down:
++ * A53 <= 816 MHz, A72 <= 1008 MHz, Mali-T860 <= 400 MHz. Drop this patch with a 3-4 A supply.
++ */
++&cluster0_opp {
++	/delete-node/ opp03;
++	/delete-node/ opp04;
++	/delete-node/ opp05;
++};
++
++&cluster1_opp {
++	/delete-node/ opp04;
++	/delete-node/ opp05;
++	/delete-node/ opp06;
++	/delete-node/ opp07;
++};
++
++&gpu_opp_table {
++	/delete-node/ opp03;
++	/delete-node/ opp04;
++	/delete-node/ opp05;
++};
