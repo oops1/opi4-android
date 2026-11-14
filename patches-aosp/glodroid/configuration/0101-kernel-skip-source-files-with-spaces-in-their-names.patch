@@ -1,0 +1,27 @@
+From 3d1d89f7643af6b4d2c19d87925f75e9725e3bbe Mon Sep 17 00:00:00 2001
+From: opi4 <opi4@localhost>
+Date: Sat, 14 Nov 2026 22:10:51 +0500
+Subject: [PATCH] kernel: skip source files with spaces in their names
+
+Linux 6.18 ships 'tools/testing/selftests/devices/probe/boards/Dell Inc.,XPS 13 9300.yaml';
+make splits the name into words and kati fails with 'depends on PHONY target 13'.
+---
+ platform/kernel/kernel.mk | 2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
+
+diff --git a/platform/kernel/kernel.mk b/platform/kernel/kernel.mk
+index 3f027ad..5cfaad9 100644
+--- a/platform/kernel/kernel.mk
++++ b/platform/kernel/kernel.mk
+@@ -28,7 +28,7 @@ KERNEL_OUT		:= $(PRODUCT_OUT)/obj/GLODROID/KERNEL
+ KERNEL_TARGET		:= $(KERNEL_OUT)/install/kernel
+ KERNEL_DTB_OUT		:= $(KERNEL_OUT)/install/dtbs
+ 
+-KERNEL_SRC_FILES        := $(sort $(shell find -L $(BOARD_KERNEL_SRC_DIR) -not -path '*/\.git/*'))
++KERNEL_SRC_FILES        := $(sort $(shell find -L $(BOARD_KERNEL_SRC_DIR) -not -path '*/\.git/*' -not -name '* *'))
+ KERNEL_PATCHES := $(if $(BOARD_KERNEL_PATCHES_DIRS),$(sort $(shell find -L $(BOARD_KERNEL_PATCHES_DIRS) -not -path '*/\.*')))
+ 
+ 
+-- 
+2.34.1
+
