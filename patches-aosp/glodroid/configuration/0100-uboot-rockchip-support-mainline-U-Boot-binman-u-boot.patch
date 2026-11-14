@@ -1,0 +1,62 @@
+From 3618582e009c8305513742efa4f95998d1f00c29 Mon Sep 17 00:00:00 2001
+From: opi4 <opi4@localhost>
+Date: Sat, 14 Nov 2026 22:05:13 +0500
+Subject: [PATCH] uboot: rockchip: support mainline U-Boot (binman
+ u-boot-rockchip.bin)
+
+With RK_MAINLINE_UBOOT=true the Rockchip bootloader is the single binman image
+(TPL + SPL + TF-A BL31 + U-Boot) instead of the rkbin miniloader/trust scheme.
+RK_TPL_BLOB selects the DDR-init blob from rkbin passed as ROCKCHIP_TPL.
+---
+ platform/uboot/uboot.mk | 20 ++++++++++++++++++++
+ 1 file changed, 20 insertions(+)
+
+diff --git a/platform/uboot/uboot.mk b/platform/uboot/uboot.mk
+index 49a25e8..c6169a9 100644
+--- a/platform/uboot/uboot.mk
++++ b/platform/uboot/uboot.mk
+@@ -73,7 +73,16 @@ endif
+ ifeq ($(PRODUCT_BOARD_PLATFORM),rockchip)
+ UBOOT_FRAGMENTS += glodroid/configuration/platform/common/rockchip/uboot.config
+ UBOOT_FRAGMENT_ROCKCHIP_EMMC := glodroid/configuration/platform/common/rockchip/uboot-emmc.config
++ifeq ($(RK_MAINLINE_UBOOT),true)
++# Mainline flow: TPL (DDR init) + SPL + TF-A BL31 + U-Boot packed by binman into one image,
++# written at sector 64 (32K). RK_TPL_BLOB is the DDR-init blob inside rkbin (external TPL).
++UBOOT_BINARY := $(UBOOT_OUT)/u-boot-rockchip.bin
++ifneq ($(RK_TPL_BLOB),)
++UMAKE += ROCKCHIP_TPL=$(AOSP_TOP_ABS)/glodroid/bootloader/rockchip-rkbin/$(RK_TPL_BLOB)
++endif
++else
+ UBOOT_BINARY := $(UBOOT_OUT)/u-boot-dtb.bin
++endif
+ UBOOT_IDBLOADER := $(UBOOT_OUT)/idbloader_externel.img
+ UBOOT_TRUST := $(UBOOT_OUT)/trust.img
+ UBOOT_BINARY_SD_EMMC := $(UBOOT_BINARY).deploy-emmc
+@@ -169,6 +178,16 @@ $(UBOOT_BINARY_SD_EMMC): $(UBOOT_BINARY)
+ 	$(UMAKE) KCFLAGS="$(UBOOT_KCFLAGS)"
+ 	cp $(UBOOT_BINARY) $@
+ 
++ifeq ($(RK_MAINLINE_UBOOT),true)
++$(PRODUCT_OUT)/bootloader-sd.img: $(UBOOT_BINARY)
++	cp -f $<.sd $@
++
++$(PRODUCT_OUT)/bootloader-emmc.img: $(UBOOT_BINARY)
++	cp -f $<.emmc $@
++
++$(PRODUCT_OUT)/bootloader-deploy-emmc.img: $(UBOOT_BINARY_SD_EMMC)
++	cp -f $< $@
++else
+ $(UBOOT_IDBLOADER): $(UBOOT_BINARY)
+ 	$(ROCKCHIP_FIRMWARE_DIR)/tools/mkimage -n rk3399 -T rksd -d $(ROCKCHIP_FIRMWARE_DIR)/bin/$(DDR_BLOB) $@
+ 	cat $(ROCKCHIP_FIRMWARE_DIR)/bin/$(MINILOADER_BLOB) >> $@
+@@ -188,6 +207,7 @@ $(PRODUCT_OUT)/bootloader-deploy-emmc.img $(PRODUCT_OUT)/bootloader-sd.img $(PRO
+ 	dd if=$(UBOOT_OUT)/uboot.img.$(subst .img,,$(subst $(PRODUCT_OUT)/bootloader-,,$@)) of=$@ seek=$$(( 16384 - 64 ))
+ 	dd if=$(UBOOT_TRUST) of=$@ seek=$$(( 24576 - 64 ))
+ 	dd if=/dev/null of=$@ bs=1 count=1 seek=$$(( 16384 * 1024 - 64 * 512 ))
++endif # RK_MAINLINE_UBOOT
+ endif
+ 
+ ifeq ($(PRODUCT_BOARD_PLATFORM),broadcom)
+-- 
+2.34.1
+

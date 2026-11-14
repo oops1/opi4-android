@@ -28,6 +28,7 @@ UBOOT_DEFCONFIG := orangepi-4-rk3399_defconfig
 ATF_PLAT        := rk3399
 RK_MAINLINE_UBOOT := true
 RK_TPL_BLOB     := bin/rk33/rk3399_ddr_800MHz_v1.30.bin
+UBOOT_FRAGMENTS := $(LOCAL_PATH)/uboot.config
 
 # Kernel
 KERNEL_DEFCONFIG := glodroid/kernel/mainline/arch/arm64/configs/defconfig
