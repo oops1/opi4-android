@@ -12,6 +12,10 @@ include glodroid/configuration/common/board-common.mk
 
 # GPU: Mali-T860 MP4 (Midgard) -> Mesa Panfrost, OpenGL ES 3.1. No Vulkan driver for Midgard.
 BOARD_MESA3D_GALLIUM_DRIVERS := panfrost
+# Mesa >= 25 compiles Panfrost's internal shaders (libpan) with OpenCL C at build time.
+# Use host tools prebuilt from the same Mesa tree (tools/build-hosttools.sh, found via PATH)
+# instead of building mesa_clc/LLVM inside the Android cross build.
+BOARD_MESA3D_EXTRA_MESON_ARGS := -Dmesa-clc=system -Dprecomp-compiler=system
 
 # Kernel: stable 6.18.y (linked by setup.sh) + Orange Pi 4 device tree from Armbian
 BOARD_KERNEL_SRC_DIR := glodroid/kernel/mainline
