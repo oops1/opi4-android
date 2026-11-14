@@ -1,0 +1,53 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!--
+  Local manifest for Android 16 (android-16.0.0_r4) on Orange Pi 4 (RK3399).
+  Install: cp manifests/opi4.xml ~/aosp/.repo/local_manifests/ && repo sync -c -j8
+  Based on GloDroidCommunity/raspberry-pi branch a-16 (manifests/glodroid.xml), with the
+  Raspberry Pi parts removed and the Rockchip parts added. Large projects use clone-depth=1.
+  The kernel is not listed here: setup.sh links ~/opi4/linux (stable 6.18.y) into the tree.
+-->
+<manifest>
+
+  <remote  name="github"     fetch="https://github.com/" />
+  <remote  name="glodroid"   fetch="https://github.com/glodroid/" />
+  <remote  name="ti"         fetch="https://git.ti.com/git" />
+
+  <remove-project name="platform/external/libyaml" />
+
+  <project path="glodroid"                        remote="glodroid" name="glodroid_configuration.git" groups="glodroid" revision="refs/tags/basedir-v0.9.0" />
+  <project path="glodroid/configuration"          remote="glodroid" name="glodroid_configuration.git" groups="glodroid" revision="c82b898997a47b699869e9650920eacecc4fd14d" />
+
+  <project path="glodroid/apks"                   remote="glodroid" name="glodroid_external_apks.git" groups="glodroid" revision="refs/tags/apps-v0.8.2" />
+
+  <!-- gpu+display components (vendor) -->
+  <project path="glodroid/vendor/minigbm"         remote="aosp" name="platform/external/minigbm"        groups="glodroid" revision="93e16b90294c4634d43c4987f194204ac3b80ac8" />
+  <project path="glodroid/vendor/mesa3d"          remote="aosp" name="platform/external/mesa3d"         groups="glodroid" revision="60fdab22a5f38f7ecef040961d1401d27d4d83b1" clone-depth="1" />
+
+  <!-- camera components (vendor): kept because a-16 patches and libyaml replacement depend on them -->
+  <project path="glodroid/vendor/libcamera"       remote="ti"   name="android/external-libcamera.git"   groups="glodroid" revision="523ebfdd1dbfc70305490530f26d961d190914be" />
+  <project path="external/libyaml"                remote="ti"   name="android/external-libyaml.git"     groups="glodroid" revision="82526f06060e20a441f102266096c0d9f34e420a" />
+  <project path="external/libyuv_chromium"        remote="ti"   name="android/external-libyuv_chromium.git" groups="glodroid" revision="0bb9615271551c974f95397d8250a1edffa4433e" />
+
+  <!-- video codecs components (vendor) -->
+  <project path="glodroid/vendor/ffmpeg"          remote="github"   name="FFmpeg/FFmpeg.git"  groups="glodroid" revision="refs/tags/n7.1" clone-depth="1" />
+  <project path="glodroid/vendor/ffmpeg_codec2"   remote="glodroid" name="glodroid_forks.git" groups="glodroid" revision="refs/tags/ffmpeg_codec2-2026w17" clone-depth="1" />
+
+  <!-- other components (vendor) -->
+  <project path="glodroid/vendor/aospext"         remote="glodroid" name="aospext.git"        groups="glodroid" revision="067694ebf1c6f7fe9e690fa9d6dfba92b19403e0" />
+  <project path="glodroid/vendor/iio-sensors-hal" remote="glodroid" name="glodroid_forks.git" groups="glodroid" revision="refs/tags/iio-sensors-hal-v0.9.0" />
+  <project path="glodroid/vendor/audio"           remote="github"   name="BayLibre/android_hardware_baylibre_audio.git" groups="glodroid" revision="a3abeb7aefc1ac665705f96f3cdd3672a98ec3d5" />
+  <project path="glodroid/vendor/libudev-zero"    remote="glodroid" name="glodroid_forks.git" groups="glodroid" revision="refs/tags/libudev_zero-v0.8.2" />
+
+  <!-- bootloader components (platform) -->
+  <project path="glodroid/bootloader/u-boot"         remote="github" name="u-boot/u-boot.git"   groups="glodroid" revision="45f05f681224d88d1b170063001b59edc8fc24cf" clone-depth="1" />
+  <project path="glodroid/bootloader/atf"            name="platform/external/arm-trusted-firmware" groups="glodroid" revision="a127b99d5a063c798d1c6d2e1d4791a630f78355" clone-depth="1" />
+  <!-- RK3399 LPDDR4 DDR-init blob used as external TPL (Armbian does the same); open TPL comes later -->
+  <project path="glodroid/bootloader/rockchip-rkbin" remote="github" name="rockchip-linux/rkbin.git" groups="glodroid" revision="refs/heads/master" clone-depth="1" />
+
+  <!-- compilers for platform components (ATF for RK3399 needs arm-eabi gcc for the M0 PMU firmware) -->
+  <project path="prebuilts/gcc/linux-x86/aarch64/gcc-linaro-aarch64-linux-gnu"
+                                           remote="glodroid" name="linaro_gcc_prebuilts.git" groups="glodroid" revision="refs/tags/gcc-linaro-7.4.1-2019.02-x86_64_aarch64-linux-gnu" />
+  <project path="prebuilts/gcc/linux-x86/arm/gcc-linaro-arm-eabi"
+                                           remote="glodroid" name="linaro_gcc_prebuilts.git" groups="glodroid" revision="refs/tags/gcc-linaro-7.5.0-2019.12-x86_64_arm-eabi" />
+
+</manifest>
