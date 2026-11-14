@@ -1,0 +1,2 @@
+# Modules ueventd must not load automatically (loaded explicitly from other.opi4.rc)
+blocklist brcmfmac

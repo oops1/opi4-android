@@ -1,0 +1,5 @@
+# brcmfmac (AP6256) asks for its vendor module 'brcmfmac-wcc' with request_module(), which needs
+# /sbin/modprobe - Android has none. Load wcc up front; modprobe pulls brcmfmac in as a dependency.
+# brcmfmac itself is blocklisted for ueventd (modules.blocklist) so it never loads without wcc.
+on early-init
+    exec u:r:vendor_modprobe:s0 -- /vendor/bin/modprobe -d /vendor/lib/modules -a brcmfmac-wcc

@@ -1,0 +1,7 @@
+# Bluetooth
+/dev/rfkill                0660   bluetooth  bluetooth
+
+# V4L2 codecs: Hantro (VPU enc/dec), rkvdec, RGA - used by the Codec2 HALs (media group)
+/dev/video*                0660   media      media
+/dev/media*                0660   media      media
+/dev/v4l-subdev*           0660   media      media

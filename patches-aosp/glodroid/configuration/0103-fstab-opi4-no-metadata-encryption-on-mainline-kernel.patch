@@ -1,0 +1,41 @@
+From c03b708278dad525f17daec0dca3bd6a00c54e61 Mon Sep 17 00:00:00 2001
+From: opi4 <opi4@localhost>
+Date: Sun, 15 Nov 2026 03:12:00 +0500
+Subject: [PATCH] fstab: opi4 - no metadata encryption on mainline kernels, FBE
+ v2; rockchip USB storage path
+
+dm-default-key exists only in the Android Common Kernel; with 'keydirectory' vold sets up
+metadata encryption and fails ('default-key: unknown target type'), then init reboots to
+recovery (init_user0_failed).
+
+---
+ platform/fstab/fstab.cpp | 8 ++++++++
+ 1 file changed, 8 insertions(+)
+
+diff --git a/platform/fstab/fstab.cpp b/platform/fstab/fstab.cpp
+index 722b70f..488debd 100644
+--- a/platform/fstab/fstab.cpp
++++ b/platform/fstab/fstab.cpp
+@@ -23,11 +23,19 @@ vendor_dlkm                         /vendor_dlkm    ext4    ro,noatime,errors=pa
+ // /dev/block/by-name/vendor_boot      /vendor_boot    emmc    defaults                              defaults,slotselect,avb=vendor_boot
+ 
+ /dev/block/by-name/metadata         /metadata       ext4    noatime,nosuid,nodev,discard,sync     wait,check,formattable,first_stage_mount
++#if defined(device_opi4)
++// Mainline kernel: no dm-default-key (an Android Common Kernel-only target), so no metadata
++// encryption ('keydirectory' alone makes vold set it up). File-based encryption via fscrypt v2.
++/dev/block/by-name/userdata         /data           ext4    noatime,nosuid,nodev,barrier=1        wait,check,latemount,quota,formattable,fileencryption=aes-256-xts:aes-256-cts:v2
++#else
+ /dev/block/by-name/userdata         /data           ext4    noatime,nosuid,nodev,barrier=1        wait,check,latemount,quota,formattable,__FILE_ENCRYPT__,keydirectory=/metadata/vold/metadata_encryption
++#endif
+ 
+ // USB storage
+ #ifdef platform_broadcom
+ /devices/platform/scb/<ALL>.pcie/<ALL>/<ALL>/<ALL>/usb<ALL>    auto   auto    defaults            voldmanaged=usb:auto,encryptable=userdata
++#elif defined(platform_rockchip)
++/devices/platform/<ALL>usb<ALL>                       auto            auto    defaults            voldmanaged=usb:auto,encryptable=userdata
+ #else
+ /devices/platform/soc/<ALL>/usb<ALL>                  auto            auto    defaults            voldmanaged=usb:auto,encryptable=userdata
+ #endif
+-- 
+2.34.1
+

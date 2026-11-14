@@ -11,6 +11,12 @@ PRODUCT_COPY_FILES += \
     $(LOCAL_PATH)/firmware/brcmfmac43456-sdio.txt:$(TARGET_COPY_OUT_VENDOR)/etc/firmware/brcm/brcmfmac43456-sdio.xunlong,orangepi-4.txt \
     $(LOCAL_PATH)/firmware/BCM4345C5.hcd:$(TARGET_COPY_OUT_VENDOR)/etc/firmware/brcm/BCM4345C5.hcd \
 
+# Init scripts, device node permissions, module blocklist
+PRODUCT_COPY_FILES += \
+    $(LOCAL_PATH)/etc/other.opi4.rc:$(TARGET_COPY_OUT_VENDOR)/etc/init/other.opi4.rc \
+    $(LOCAL_PATH)/etc/uevent.device.rc:$(TARGET_COPY_OUT_VENDOR)/etc/uevent.device.rc \
+    $(LOCAL_PATH)/etc/modules.blocklist:$(TARGET_COPY_OUT_VENDOR_DLKM)/lib/modules/modules.blocklist \
+
 # Disable suspend while bringing the board up
 PRODUCT_COPY_FILES += \
     glodroid/configuration/common/no_suspend.rc:$(TARGET_COPY_OUT_VENDOR)/etc/init/no_suspend.opi4.rc \
