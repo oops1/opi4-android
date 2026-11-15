@@ -43,6 +43,11 @@ SYSFS_MMC1_PATH := fe320000.mmc
 
 GD_NO_DEFAULT_CAMERA := true
 GD_NO_DEFAULT_MODEM := true
+# GloDroid's first-boot apps (F-Droid, SkyTube, Fenix 95 that crashes on Android 16,
+# a phone launcher that also lands on the TV build): not wanted here
+GD_NO_DEFAULT_APPS := true
+# Codec list without the stateful-only c2.v4l2.* components (codecs/media_codecs.xml)
+GD_MEDIACODECS_FILE := $(LOCAL_PATH)/codecs/media_codecs.xml
 
 $(call inherit-product, $(LOCAL_PATH)/device.mk)
 

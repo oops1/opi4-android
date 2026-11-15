@@ -1,0 +1,15 @@
+<?xml version="1.0" encoding="utf-8" ?>
+<!--
+  Orange Pi 4 (RK3399) codec list.
+
+  GloDroid's default list starts with c2.v4l2.* (ChromeOS v4l2_codec2), which only drives
+  stateful V4L2 codecs. RK3399's decoders (rkvdec, Hantro) are stateless, so those
+  components fail to start ("No devices supporting H264") and players such as the TV setup
+  wizard give up instead of falling back. Hardware decoding goes through c2.ffmpeg.*
+  (FFmpeg + V4L2 request API), software decoding through c2.ffmpeg.* and c2.android.*.
+-->
+<MediaCodecs>
+    <Include href="media_codecs_ffmpeg_c2.xml" />
+    <Include href="media_codecs_google_c2_audio.xml" />
+    <Include href="media_codecs_google_c2_video.xml" />
+</MediaCodecs>
