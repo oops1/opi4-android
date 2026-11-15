@@ -18,3 +18,7 @@
 /sys/devices/platform/pinctrl/*/gpiochip*/gpio/gpio*  direction   0666 root root
 /sys/devices/platform/pinctrl/*/gpiochip*/gpio/gpio*  edge        0666 root root
 /sys/devices/platform/pinctrl/*/gpiochip*/gpio/gpio*  active_low  0666 root root
+/sys/devices/platform/ff42*.pwm/pwm/pwmchip*/pwm*     period      0666 root root
+/sys/devices/platform/ff42*.pwm/pwm/pwmchip*/pwm*     duty_cycle  0666 root root
+/sys/devices/platform/ff42*.pwm/pwm/pwmchip*/pwm*     polarity    0666 root root
+/sys/devices/platform/ff42*.pwm/pwm/pwmchip*/pwm*     enable      0666 root root
