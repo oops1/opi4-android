@@ -1,0 +1,52 @@
+# Orange Pi 4 board policy on top of GloDroid. GloDroid runs permissive by default, so
+# these rules come from the denials of a permissive run (needed for 'user' builds,
+# which are always enforcing).
+
+# --- Graphics: minigbm_gd hands out memfd-backed buffers that live in the allocator's
+# tmpfs; every client maps them.
+allow {
+  appdomain
+  -isolated_app_all
+  bootanim
+  surfaceflinger
+  system_server
+  hal_graphics_composer_default
+  mediacodec
+  mediaswcodec
+  cameraserver
+} hal_graphics_allocator_default_tmpfs:file { getattr read write map };
+hal_client_domain(hal_graphics_composer_default, hal_graphics_allocator)
+
+# minigbm/Mesa probe optional vendor.* debug properties everywhere; reading them is
+# not needed (the defaults apply), silence the noise.
+dontaudit {
+  appdomain
+  bootanim
+  surfaceflinger
+  system_server
+  mediaswcodec
+  cameraserver
+} vendor_default_prop:file { getattr open read map };
+
+# --- Video decoders (rkvdec, Hantro): /dev/video* + /dev/media* are video_device
+# (file_contexts); mediacodec already has rw access to it.
+
+# --- Bluetooth HAL toggles the radio through /dev/rfkill.
+type rfkill_device, dev_type;
+allow hal_bluetooth_default rfkill_device:chr_file rw_file_perms;
+
+# --- USB gadget HAL (adb/MTP switching)
+allow hal_usb_gadget_default functionfs:dir { watch watch_reads };
+get_prop(hal_usb_gadget_default, usb_control_prop)
+
+# --- Gatekeeper also serves ISharedSecret/gatekeeper for keymint's key agreement.
+add_service(hal_gatekeeper_default, hal_sharedsecret_service)
+binder_call(keystore, hal_gatekeeper_default)
+
+# --- Kernel loads Wi-Fi/BT firmware from /vendor/etc/firmware
+# (firmware_class.path=/vendor/etc/firmware).
+allow kernel vendor_configs_file:system firmware_load;
+dontaudit kernel device:blk_file { create setattr unlink };
+
+# --- Audio HAL card selection is a vendor property set from init.
+set_prop(vendor_init, vendor_audio_prop)

@@ -1,0 +1,9 @@
+# GPU / display (libdrm's drmGetDevice reads uevent, Mesa reads the GPU node)
+genfscon sysfs /devices/platform/display-subsystem                     u:object_r:sysfs_gpu:s0
+genfscon sysfs /devices/platform/ff9a0000.gpu                          u:object_r:sysfs_gpu:s0
+# SD card and eMMC hosts (storaged, vold, fs tools read block queue/stat)
+genfscon sysfs /devices/platform/fe320000.mmc                          u:object_r:sysfs_devices_block:s0
+genfscon sysfs /devices/platform/fe330000.mmc                          u:object_r:sysfs_devices_block:s0
+# USB-C power input (fusb302) for the health HAL, Type-C extcon
+genfscon sysfs /devices/platform/ff3d0000.i2c/i2c-4/4-0022/power_supply u:object_r:sysfs_batteryinfo:s0
+genfscon sysfs /devices/platform/typec-extcon/extcon                   u:object_r:sysfs_extcon:s0

@@ -1,1 +1,26 @@
 /data/vendor/mediadrm(/.*)?            u:object_r:mediadrm_vendor_data_file:s0
+
+# Android partitions on the SD card (fe320000.mmc) or the eMMC (fe330000.mmc). ueventd
+# labels the nodes through their by-name symlinks (only the boot disk gets them).
+/dev/block/by-name/misc                         u:object_r:misc_block_device:s0
+/dev/block/by-name/metadata                     u:object_r:metadata_block_device:s0
+/dev/block/by-name/userdata                     u:object_r:userdata_block_device:s0
+/dev/block/by-name/super                        u:object_r:super_block_device:s0
+/dev/block/by-name/frp                          u:object_r:frp_block_device:s0
+/dev/block/by-name/(init_|vendor_)?boot_[ab]    u:object_r:boot_block_device:s0
+/dev/block/by-name/vbmeta(_system)?_[ab]        u:object_r:boot_block_device:s0
+
+# Stateless video decoders (rkvdec, Hantro) and their media controllers
+/dev/video[0-9]+                                u:object_r:video_device:s0
+/dev/media[0-9]+                                u:object_r:video_device:s0
+
+/dev/rfkill                                     u:object_r:rfkill_device:s0
+
+# Google apps from removable storage
+/vendor/bin/opi4_gapps                          u:object_r:opi4_gapps_exec:s0
+/data/vendor/gapps(/.*)?                        u:object_r:opi4_gapps_data_file:s0
+
+# Loaded into every process that touches gralloc buffers (stable-C mapper)
+/vendor/lib(64)?/(hw/)?mapper\.minigbm_gd\.so                       u:object_r:same_process_hal_file:s0
+/vendor/lib(64)?/libui\.so                                          u:object_r:same_process_hal_file:s0
+/vendor/lib(64)?/android\.hardware\.graphics\.allocator@[34]\.0\.so u:object_r:same_process_hal_file:s0

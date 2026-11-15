@@ -1,0 +1,17 @@
+// Google apps from removable storage for images that ship without them (opi4_gapps.cpp).
+package {
+    default_applicable_licenses: ["Android-Apache-2.0"],
+}
+
+cc_binary {
+    name: "opi4_gapps",
+    vendor: true,
+    srcs: ["opi4_gapps.cpp"],
+    shared_libs: [
+        "libbase",
+        "liblog",
+        "libziparchive",
+    ],
+    init_rc: ["opi4_gapps.rc"],
+    cflags: ["-Wall", "-Werror"],
+}

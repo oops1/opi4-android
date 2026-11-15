@@ -1,0 +1,27 @@
+# Google apps from removable storage (opi4_gapps.cpp)
+
+on post-fs-data
+    mkdir /data/vendor/gapps 0700 root root
+    # overlays must be in place before zygote/system_server scan the app directories
+    exec_start vendor.opi4_gapps_mount
+
+service vendor.opi4_gapps_mount /vendor/bin/opi4_gapps mount
+    user root
+    group root
+    oneshot
+    disabled
+
+service vendor.opi4_gapps_install /vendor/bin/opi4_gapps install
+    user root
+    group root media_rw
+    capabilities MKNOD
+    disabled
+
+# Watch removable storage (vold mounts it under /mnt/media_rw) for MindTheGapps-*.zip.
+on property:sys.boot_completed=1
+    start vendor.opi4_gapps_install
+
+on property:vendor.opi4.gapps.reboot=gapps-installed
+    setprop sys.powerctl reboot,gapps
+on property:vendor.opi4.gapps.reboot=gapps-removed
+    setprop sys.powerctl reboot,gapps

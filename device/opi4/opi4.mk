@@ -51,6 +51,13 @@ GD_MEDIACODECS_FILE := $(LOCAL_PATH)/codecs/media_codecs.xml
 
 $(call inherit-product, $(LOCAL_PATH)/device.mk)
 
+# Release builds are signed with our own keys instead of AOSP's public test keys
+# (OPI4_RELEASE_KEYS=<dir with releasekey/platform/shared/media/networkstack/... .pk8+.x509.pem>,
+# made with development/tools/make_key, kept outside the repo).
+ifneq ($(OPI4_RELEASE_KEYS),)
+PRODUCT_DEFAULT_DEV_CERTIFICATE := $(OPI4_RELEASE_KEYS)/releasekey
+endif
+
 # Google apps, not part of this repo (proprietary, not redistributable): build
 # "WITH_GAPPS=false m" for images meant to be shared.
 #  opi4:    MindTheGapps, branch baklava, cloned to vendor/gapps
@@ -70,4 +77,23 @@ endif
 ifneq ($(wildcard vendor/widevine/widevine-vendor.mk),)
 $(call inherit-product, vendor/widevine/widevine-vendor.mk)
 endif
+else
+# Shared images: the user adds Google apps by plugging in storage with the MindTheGapps
+# zip (device/opi4/gapps). The overlay targets must exist in the image.
+PRODUCT_PACKAGES += opi4_gapps
+GAPPS_KEEP := $(LOCAL_PATH)/gapps/keep
+PRODUCT_COPY_FILES += \
+    $(GAPPS_KEEP):$(TARGET_COPY_OUT_PRODUCT)/app/.keep \
+    $(GAPPS_KEEP):$(TARGET_COPY_OUT_PRODUCT)/priv-app/.keep \
+    $(GAPPS_KEEP):$(TARGET_COPY_OUT_PRODUCT)/overlay/.keep \
+    $(GAPPS_KEEP):$(TARGET_COPY_OUT_PRODUCT)/framework/.keep \
+    $(GAPPS_KEEP):$(TARGET_COPY_OUT_PRODUCT)/etc/permissions/.keep \
+    $(GAPPS_KEEP):$(TARGET_COPY_OUT_PRODUCT)/etc/sysconfig/.keep \
+    $(GAPPS_KEEP):$(TARGET_COPY_OUT_PRODUCT)/etc/default-permissions/.keep \
+    $(GAPPS_KEEP):$(TARGET_COPY_OUT_SYSTEM)/app/.keep \
+    $(GAPPS_KEEP):$(TARGET_COPY_OUT_SYSTEM)/priv-app/.keep \
+    $(GAPPS_KEEP):$(TARGET_COPY_OUT_SYSTEM)/etc/permissions/.keep \
+    $(GAPPS_KEEP):$(TARGET_COPY_OUT_SYSTEM_EXT)/app/.keep \
+    $(GAPPS_KEEP):$(TARGET_COPY_OUT_SYSTEM_EXT)/priv-app/.keep \
+    $(GAPPS_KEEP):$(TARGET_COPY_OUT_SYSTEM_EXT)/etc/permissions/.keep
 endif
