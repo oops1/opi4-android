@@ -1,20 +1,33 @@
-# Google apps from removable storage (opi4_gapps.cpp)
+# Google apps from removable storage (opi4_gapps.cpp).
+# Before zygote scans the app directories, init overlays the unpacked MindTheGapps tree
+# (if any) on top of them, read-only, labelled like the image's own files. When nothing
+# is installed the lower directory is missing and each mount just fails (harmless).
 
 on post-fs-data
     mkdir /data/vendor/gapps 0700 root root
-    # overlays must be in place before zygote/system_server scan the app directories
-    exec_start vendor.opi4_gapps_mount
+    mount overlay overlay /product/app ro lowerdir=/data/vendor/gapps/root/product/app:/product/app,context=u:object_r:system_file:s0
+    mount overlay overlay /product/priv-app ro lowerdir=/data/vendor/gapps/root/product/priv-app:/product/priv-app,context=u:object_r:system_file:s0
+    mount overlay overlay /product/overlay ro lowerdir=/data/vendor/gapps/root/product/overlay:/product/overlay,context=u:object_r:system_file:s0
+    mount overlay overlay /product/framework ro lowerdir=/data/vendor/gapps/root/product/framework:/product/framework,context=u:object_r:system_file:s0
+    mount overlay overlay /product/etc/permissions ro lowerdir=/data/vendor/gapps/root/product/etc/permissions:/product/etc/permissions,context=u:object_r:system_file:s0
+    mount overlay overlay /product/etc/sysconfig ro lowerdir=/data/vendor/gapps/root/product/etc/sysconfig:/product/etc/sysconfig,context=u:object_r:system_file:s0
+    mount overlay overlay /product/etc/default-permissions ro lowerdir=/data/vendor/gapps/root/product/etc/default-permissions:/product/etc/default-permissions,context=u:object_r:system_file:s0
+    mount overlay overlay /system/app ro lowerdir=/data/vendor/gapps/root/system/app:/system/app,context=u:object_r:system_file:s0
+    mount overlay overlay /system/priv-app ro lowerdir=/data/vendor/gapps/root/system/priv-app:/system/priv-app,context=u:object_r:system_file:s0
+    mount overlay overlay /system/etc/permissions ro lowerdir=/data/vendor/gapps/root/system/etc/permissions:/system/etc/permissions,context=u:object_r:system_file:s0
+    mount overlay overlay /system_ext/app ro lowerdir=/data/vendor/gapps/root/system_ext/app:/system_ext/app,context=u:object_r:system_file:s0
+    mount overlay overlay /system_ext/priv-app ro lowerdir=/data/vendor/gapps/root/system_ext/priv-app:/system_ext/priv-app,context=u:object_r:system_file:s0
+    mount overlay overlay /system_ext/etc/permissions ro lowerdir=/data/vendor/gapps/root/system_ext/etc/permissions:/system_ext/etc/permissions,context=u:object_r:system_file:s0
+    # The stand-in launcher and setup app give way to Google's: an empty directory is
+    # mounted over them (only exists when Google apps are installed).
+    mount none /data/vendor/gapps/root/hide /product/priv-app/TvSampleLeanbackLauncher bind
+    mount none /data/vendor/gapps/root/hide /product/app/TvSampleLeanbackLauncher bind
+    mount none /data/vendor/gapps/root/hide /product/priv-app/TvProvision bind
+    mount none /data/vendor/gapps/root/hide /product/app/TvProvision bind
 
-service vendor.opi4_gapps_mount /vendor/bin/opi4_gapps mount
-    user root
-    group root
-    oneshot
-    disabled
-
-service vendor.opi4_gapps_install /vendor/bin/opi4_gapps install
+service vendor.opi4_gapps_install /vendor/bin/opi4_gapps
     user root
     group root media_rw
-    capabilities MKNOD
     disabled
 
 # Watch removable storage (vold mounts it under /mnt/media_rw) for MindTheGapps-*.zip.

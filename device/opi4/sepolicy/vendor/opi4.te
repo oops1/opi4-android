@@ -39,9 +39,8 @@ allow hal_bluetooth_default rfkill_device:chr_file rw_file_perms;
 allow hal_usb_gadget_default functionfs:dir { watch watch_reads };
 get_prop(hal_usb_gadget_default, usb_control_prop)
 
-# --- Gatekeeper also serves ISharedSecret/gatekeeper for keymint's key agreement.
-add_service(hal_gatekeeper_default, hal_sharedsecret_service)
-binder_call(keystore, hal_gatekeeper_default)
+# --- Gatekeeper also serves ISharedSecret/gatekeeper (labelled hal_gatekeeper_service in
+# service_contexts, as on the emulator), so keystore's shared-secret negotiation reaches it.
 
 # --- Kernel loads Wi-Fi/BT firmware from /vendor/etc/firmware
 # (firmware_class.path=/vendor/etc/firmware).
