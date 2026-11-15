@@ -1,0 +1,59 @@
+From b8d5c7280921fd5f2b514a89f233cc3ca830005b Mon Sep 17 00:00:00 2001
+From: opi4 <opi4@localhost>
+Date: Sun, 15 Nov 2026 16:19:01 +0500
+Subject: [PATCH] device-tv: real-hardware TV vendor setup instead of
+ cuttlefish's
+
+cuttlefish/shared/tv/device_vendor.mk pulled emulator packages into the vendor image
+and clashed with the board's ueventd.rc. Keep the AOSP ATV product sets, add LeanbackIME,
+and only add the sample launcher/TvProvision when no Google ATV apps are present.
+---
+ common/device-tv.mk | 18 +++++++++++-------
+ 1 file changed, 11 insertions(+), 7 deletions(-)
+
+diff --git a/common/device-tv.mk b/common/device-tv.mk
+index c89360e..fb9aad9 100644
+--- a/common/device-tv.mk
++++ b/common/device-tv.mk
+@@ -1,4 +1,3 @@
+-
+ PRODUCT_ENFORCE_ARTIFACT_PATH_REQUIREMENTS := false
+ 
+ #
+@@ -6,7 +5,6 @@ PRODUCT_ENFORCE_ARTIFACT_PATH_REQUIREMENTS := false
+ #
+ $(call inherit-product, device/google/atv/products/atv_generic_system.mk)
+ 
+-
+ #
+ # All components inherited here go to system_ext image
+ #
+@@ -18,14 +16,20 @@ $(call inherit-product, device/google/atv/products/atv_system_ext.mk)
+ $(call inherit-product, device/google/atv/products/atv_product.mk)
+ 
+ #
+-# All components inherited here go to vendor image
++# All components inherited here go to vendor image.
++# Not cuttlefish/shared/tv/device_vendor.mk: that is the emulator's vendor setup (swiftshader,
++# virgl, emulated camera and tuner HALs, its own ueventd.rc, a CUTTLEFISHEMU OEM key).
+ #
+-$(call inherit-product, device/google/cuttlefish/shared/tv/device_vendor.mk)
++$(call inherit-product, device/google/atv/products/atv_vendor.mk)
+ 
+-# Fallback IME and Home apps
+-PRODUCT_PACKAGES += LeanbackIME TvSampleLeanbackLauncher TvProvision
++# TV on-screen keyboard
++PRODUCT_PACKAGES += LeanbackIME
+ 
+-$(call inherit-product, device/google/atv/products/atv_vendor.mk)
++# Fallback Home and setup apps, unless the Google ATV apps (launcher, SetupWraith) come in
++GD_TV_GAPPS := $(if $(filter false,$(WITH_GAPPS)),,$(wildcard vendor/gapps-atv/gapps-atv-vendor.mk))
++ifeq ($(GD_TV_GAPPS),)
++PRODUCT_PACKAGES += TvSampleLeanbackLauncher TvProvision
++endif
+ 
+ PRODUCT_COPY_FILES += \
+     device/google/atv/products/bootanimations/bootanimation.zip:system/media/bootanimation.zip
+-- 
+2.34.1
+
