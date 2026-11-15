@@ -72,6 +72,12 @@ PRODUCT_VENDOR_PROPERTIES += \
     bluetooth.profile.hap.client.enabled=false \
     bluetooth.profile.vcp.controller.enabled=false \
     persist.bluetooth.a2dp_offload.disabled=true \
+    bluetooth.core.gap.le.privacy.enabled=false \
+
+# ^ LE privacy off: the host keeps its public address. BLE TV remotes (Z14-RC and similar
+# box remotes) wake up with directed advertising to the address they paired with; with
+# rotating private addresses they could not reconnect after sleeping and had to be paired
+# again. Android TV boxes ship with privacy disabled for the same reason.
 
 # Audio: GloDroid HAL drives one ALSA card. HDMI (card "hdmisound") is the output a TV box
 # needs; the RT5651 analog jack is card 0 (persist.vendor.audio.primary.card_name=realtekrt5651co).
