@@ -1,0 +1,62 @@
+From 17bd142ded11364c51f8329af42f1e9a4d3a26d0 Mon Sep 17 00:00:00 2001
+From: opi4 <opi4@localhost>
+Date: Sun, 15 Nov 2026 17:47:28 +0500
+Subject: [PATCH] Add E-AC3, DTS, DTS-HD (core) and TrueHD audio decoders
+
+FFmpeg is built with these decoders; expose them as Codec2 components for players that
+use the platform decoders (Matroska/MPEG-TS sources, streaming apps). E-AC3 shares the
+AC3 helper (stereo downmix).
+---
+ media_codecs_ffmpeg_c2.xml | 20 ++++++++++++++++++++
+ service.cpp                |  4 ++++
+ 2 files changed, 24 insertions(+)
+
+diff --git a/media_codecs_ffmpeg_c2.xml b/media_codecs_ffmpeg_c2.xml
+index 03f799a..26d7d73 100644
+--- a/media_codecs_ffmpeg_c2.xml
++++ b/media_codecs_ffmpeg_c2.xml
+@@ -27,6 +27,26 @@
+             <Limit name="channel-count" max="8" />
+             <Limit name="sample-rate" ranges="8000-192000" />
+         </MediaCodec>
++        <MediaCodec name="c2.ffmpeg.eac3.decoder" type="audio/eac3" >
++            <Alias name="OMX.ffmpeg.eac3.decoder" />
++            <Limit name="channel-count" max="8" />
++            <Limit name="sample-rate" ranges="8000-192000" />
++        </MediaCodec>
++        <MediaCodec name="c2.ffmpeg.dts.decoder" type="audio/vnd.dts" >
++            <Alias name="OMX.ffmpeg.dts.decoder" />
++            <Limit name="channel-count" max="8" />
++            <Limit name="sample-rate" ranges="8000-192000" />
++        </MediaCodec>
++        <MediaCodec name="c2.ffmpeg.dtshd.decoder" type="audio/vnd.dts.hd" >
++            <Alias name="OMX.ffmpeg.dtshd.decoder" />
++            <Limit name="channel-count" max="8" />
++            <Limit name="sample-rate" ranges="8000-192000" />
++        </MediaCodec>
++        <MediaCodec name="c2.ffmpeg.truehd.decoder" type="audio/true-hd" >
++            <Alias name="OMX.ffmpeg.truehd.decoder" />
++            <Limit name="channel-count" max="8" />
++            <Limit name="sample-rate" ranges="8000-192000" />
++        </MediaCodec>
+         <MediaCodec name="c2.ffmpeg.alac.decoder"   type="audio/alac" >
+             <Alias name="OMX.ffmpeg.alac.decoder" />
+             <Limit name="channel-count" max="8" />
+diff --git a/service.cpp b/service.cpp
+index 6a2c6e2..8136d60 100644
+--- a/service.cpp
++++ b/service.cpp
+@@ -54,6 +54,10 @@ static const C2FFMPEGComponentInfo kFFMPEGAudioComponents[] = {
+     { "c2.ffmpeg.aac.decoder"   , MEDIA_MIMETYPE_AUDIO_AAC          , AV_CODEC_ID_AAC    },
+     { "c2.ffmpeg.ac3.decoder"   , MEDIA_MIMETYPE_AUDIO_AC3          , AV_CODEC_ID_AC3    },
+     { "c2.ffmpeg.alac.decoder"  , MEDIA_MIMETYPE_AUDIO_ALAC         , AV_CODEC_ID_ALAC   },
++    { "c2.ffmpeg.eac3.decoder"  , "audio/eac3"                      , AV_CODEC_ID_EAC3   },
++    { "c2.ffmpeg.dts.decoder"   , "audio/vnd.dts"                   , AV_CODEC_ID_DTS    },
++    { "c2.ffmpeg.dtshd.decoder" , "audio/vnd.dts.hd"                , AV_CODEC_ID_DTS    },
++    { "c2.ffmpeg.truehd.decoder", "audio/true-hd"                   , AV_CODEC_ID_TRUEHD },
+     { "c2.ffmpeg.flac.decoder"  , MEDIA_MIMETYPE_AUDIO_FLAC         , AV_CODEC_ID_FLAC   },
+     { "c2.ffmpeg.mp2.decoder"   , MEDIA_MIMETYPE_AUDIO_MPEG_LAYER_II, AV_CODEC_ID_MP2    },
+     { "c2.ffmpeg.mp3.decoder"   , MEDIA_MIMETYPE_AUDIO_MPEG         , AV_CODEC_ID_MP3    },
+-- 
+2.34.1
+
