@@ -27,9 +27,8 @@ vendor_internal_prop(vendor_ffmpeg_codec2_prop)
 set_prop(vendor_init, vendor_ffmpeg_codec2_prop)
 get_prop(mediacodec, vendor_ffmpeg_codec2_prop)
 
-# Block device stats on the SD/eMMC hosts, queue tuning by init
-allow storaged sysfs_devices_block:dir r_dir_perms;
-allow storaged sysfs_devices_block:file r_file_perms;
+# Block queue tuning by init on the SD/eMMC hosts (storaged's stats reads are not
+# grantable from vendor policy and only feed statistics)
 allow init sysfs_devices_block:file w_file_perms;
 
 # minigbm/Mesa probe optional vendor.* debug properties everywhere; reading them is
