@@ -26,6 +26,9 @@ BOARD_MESA3D_GALLIUM_DRIVERS := panfrost
 # instead of building mesa_clc/LLVM inside the Android cross build.
 BOARD_MESA3D_EXTRA_MESON_ARGS := -Dmesa-clc=system -Dprecomp-compiler=system
 
+# Board SELinux policy (Widevine HAL domain for the optional vendor/widevine APEX)
+BOARD_VENDOR_SEPOLICY_DIRS += $(BC_PATH)sepolicy/vendor
+
 # Kernel: stable 6.18.y (linked by setup.sh) + Orange Pi 4 device tree from Armbian
 BOARD_KERNEL_SRC_DIR := glodroid/kernel/mainline
 BOARD_KERNEL_PATCHES_DIRS := $(BC_PATH)kernel-patches

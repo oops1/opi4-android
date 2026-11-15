@@ -65,4 +65,9 @@ ifneq ($(wildcard vendor/gapps-atv/gapps-atv-vendor.mk),)
 $(call inherit-product, vendor/gapps-atv/gapps-atv-vendor.mk)
 endif
 endif
+# Widevine L3 (Google's APEX from the emulator image, tools/extract-widevine.sh): personal
+# builds only, same rule as the Google apps
+ifneq ($(wildcard vendor/widevine/widevine-vendor.mk),)
+$(call inherit-product, vendor/widevine/widevine-vendor.mk)
+endif
 endif
