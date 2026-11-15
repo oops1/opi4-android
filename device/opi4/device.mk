@@ -57,5 +57,8 @@ PRODUCT_VENDOR_PROPERTIES += \
     bluetooth.profile.vcp.controller.enabled=false \
     persist.bluetooth.a2dp_offload.disabled=true \
 
+# Audio: GloDroid HAL drives one ALSA card. HDMI (card "hdmisound") is the output a TV box
+# needs; the RT5651 analog jack is card 0 (persist.vendor.audio.primary.card_name=realtekrt5651co).
+PRODUCT_VENDOR_PROPERTIES += \n    persist.vendor.audio.primary.card_name=hdmisound \n    persist.vendor.audio.primary.card=1 \n    persist.vendor.audio.primary.device=0 \n
 # No Vulkan on Midgard: keep HWUI and RenderEngine on Skia/GL
 TARGET_USES_VULKAN := false

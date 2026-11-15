@@ -1,0 +1,40 @@
+From 20357fff0e5d9ca038f9c967bc928e615588e65d Mon Sep 17 00:00:00 2001
+From: opi4 <opi4@localhost>
+Date: Sun, 15 Nov 2026 14:08:29 +0500
+Subject: [PATCH] audio: only force Raspberry Pi card/mixer properties on
+ Raspberry Pi boards
+
+On other boards the HAL overwrote persist.vendor.audio.primary.card_name with
+"Headphones" on every start, so vendor/user settings never took effect.
+---
+ main.cpp | 7 ++++++-
+ 1 file changed, 6 insertions(+), 1 deletion(-)
+
+diff --git a/main.cpp b/main.cpp
+index 1f101a6..0d26441 100644
+--- a/main.cpp
++++ b/main.cpp
+@@ -69,6 +69,11 @@ static std::string detectRpiModel() {
+     std::string compat(buf, len);
+     LOG(INFO) << __func__ << ": DT compatible is '" << compat << "'";
+ 
++    if (compat.find("raspberrypi") == std::string::npos) {
++        LOG(INFO) << __func__ << ": not a Raspberry Pi, keeping vendor audio properties";
++        return "";
++    }
++
+     if (compat.find(kRpi400Compat) != std::string::npos) {
+         LOG(INFO) << __func__ << ": Detected Raspberry Pi 400";
+         return "rpi400";
+@@ -142,7 +147,7 @@ int main() {
+     // Detect Raspberry Pi model from device tree and configure
+     // the appropriate ALSA card name and mixer controls.
+     std::string rpiModel = detectRpiModel();
+-    configureRpiPlatform(rpiModel);
++    if (!rpiModel.empty()) configureRpiPlatform(rpiModel);
+ 
+     // Load audio policy configuration from platform-specific XML file
+     // The configuration file location can be customized per platform:
+-- 
+2.34.1
+
