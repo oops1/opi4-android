@@ -1,0 +1,30 @@
+From 2e52cd0162aae8d2298f03bd8a0102a915af0901 Mon Sep 17 00:00:00 2001
+From: opi4 <opi4@localhost>
+Date: Mon, 16 Nov 2026 04:19:21 +0500
+Subject: [PATCH] sepolicy: drop the Raspberry Pi camera labels for
+ video0/media1/media2
+
+On other boards these nodes are video decoders (video_device) that mediacodec
+must open; mediacodec may not touch camera_device (neverallow).
+---
+ common/base/sepolicy/vendor/file_contexts | 3 ---
+ 1 file changed, 3 deletions(-)
+
+diff --git a/common/base/sepolicy/vendor/file_contexts b/common/base/sepolicy/vendor/file_contexts
+index 5d8c2ef..8696465 100644
+--- a/common/base/sepolicy/vendor/file_contexts
++++ b/common/base/sepolicy/vendor/file_contexts
+@@ -9,10 +9,7 @@
+ /dev/block/platform/soc@0/emmc2bus/fe340000\.mmc/by-name/dtbo(_[ab])?           u:object_r:boot_block_device:s0
+ 
+ # RPI4 camera and ISP
+-/dev/video0                                                                     u:object_r:camera_device:s0
+ /dev/video13                                                                    u:object_r:camera_device:s0
+ /dev/video14                                                                    u:object_r:camera_device:s0
+ /dev/video15                                                                    u:object_r:camera_device:s0
+ /dev/video16                                                                    u:object_r:camera_device:s0
+-/dev/media1                                                                     u:object_r:camera_device:s0
+-/dev/media2                                                                     u:object_r:camera_device:s0
+-- 
+2.34.1
+

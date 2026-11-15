@@ -1,15 +1,17 @@
 # Google apps from removable storage (device/opi4/gapps): the installer unpacks
-# MindTheGapps into /data/vendor/gapps; init overlays it read-only on the app
-# directories before zygote (opi4_gapps.rc). Only init may mount over system files.
+# MindTheGapps and packs it into an ext4 image in /data/vendor/gapps; init loop-mounts
+# the image (system_file label) and overlays it read-only on the app directories before
+# zygote (opi4_gapps.rc). Only init may mount over system files.
 type opi4_gapps, domain;
 type opi4_gapps_exec, exec_type, vendor_file_type, file_type;
 type opi4_gapps_data_file, file_type, data_file_type;
 init_daemon_domain(opi4_gapps)
 
-# unpack
+# unpack, build the image with /vendor/bin/mke2fs + e2fsdroid (run in this domain)
 allow opi4_gapps vendor_data_file:dir search;
 allow opi4_gapps opi4_gapps_data_file:dir create_dir_perms;
 allow opi4_gapps opi4_gapps_data_file:file create_file_perms;
+allow opi4_gapps vendor_file:file execute_no_trans;
 
 # read the zip from USB/SD storage mounted by vold
 allow opi4_gapps mnt_media_rw_file:dir r_dir_perms;
@@ -20,10 +22,10 @@ allow opi4_gapps { vfat exfat }:file r_file_perms;
 vendor_internal_prop(vendor_opi4_gapps_prop)
 set_prop(opi4_gapps, vendor_opi4_gapps_prop)
 
-# init mounts the overlays; overlayfs keeps checking the mounter's rights on the layers
-allow init opi4_gapps_data_file:dir { mounton r_dir_perms };
-allow init opi4_gapps_data_file:file { r_file_perms map execute };
-# context= gives the files the image's labels; fscontext=labeledfs keeps the superblock
-# label every domain may statfs (see opi4_gapps.rc)
+# init: loop-mount the image (the kernel's loop worker reads it), then the overlays
+allow init opi4_gapps_data_file:dir r_dir_perms;
+allow init opi4_gapps_data_file:file { r_file_perms };
+allow kernel opi4_gapps_data_file:file { read getattr };
 allow init { system_file system_lib_file }:filesystem { relabelto relabelfrom associate };
 allow init system_lib_file:dir mounton;
+allow init mnt_vendor_file:dir mounton;

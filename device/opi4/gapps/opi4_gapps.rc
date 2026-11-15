@@ -1,31 +1,34 @@
 # Google apps from removable storage (opi4_gapps.cpp).
-# Before zygote scans the app directories, init overlays the unpacked MindTheGapps tree
-# (if any) on top of them, read-only, labelled like the image's own files. When nothing
-# is installed the lower directory is missing and each mount just fails (harmless).
+# Before zygote scans the app directories, init loop-mounts the image built from the
+# MindTheGapps zip (if any) and overlays its directories on top of the image's own,
+# read-only, with the labels of system files. Without an image every mount just fails.
+# fscontext=labeledfs: the superblock label any domain may statfs.
 
 on post-fs-data
     mkdir /data/vendor/gapps 0700 root root
-    mount overlay overlay /product/app ro lowerdir=/data/vendor/gapps/root/product/app:/product/app,fscontext=u:object_r:labeledfs:s0,context=u:object_r:system_file:s0
-    mount overlay overlay /product/priv-app ro lowerdir=/data/vendor/gapps/root/product/priv-app:/product/priv-app,fscontext=u:object_r:labeledfs:s0,context=u:object_r:system_file:s0
-    mount overlay overlay /product/overlay ro lowerdir=/data/vendor/gapps/root/product/overlay:/product/overlay,fscontext=u:object_r:labeledfs:s0,context=u:object_r:system_file:s0
-    mount overlay overlay /product/lib64 ro lowerdir=/data/vendor/gapps/root/product/lib64:/product/lib64,fscontext=u:object_r:labeledfs:s0,context=u:object_r:system_lib_file:s0
-    mount overlay overlay /product/etc/security ro lowerdir=/data/vendor/gapps/root/product/etc/security:/product/etc/security,fscontext=u:object_r:labeledfs:s0,context=u:object_r:system_file:s0
-    mount overlay overlay /product/framework ro lowerdir=/data/vendor/gapps/root/product/framework:/product/framework,fscontext=u:object_r:labeledfs:s0,context=u:object_r:system_file:s0
-    mount overlay overlay /product/etc/permissions ro lowerdir=/data/vendor/gapps/root/product/etc/permissions:/product/etc/permissions,fscontext=u:object_r:labeledfs:s0,context=u:object_r:system_file:s0
-    mount overlay overlay /product/etc/sysconfig ro lowerdir=/data/vendor/gapps/root/product/etc/sysconfig:/product/etc/sysconfig,fscontext=u:object_r:labeledfs:s0,context=u:object_r:system_file:s0
-    mount overlay overlay /product/etc/default-permissions ro lowerdir=/data/vendor/gapps/root/product/etc/default-permissions:/product/etc/default-permissions,fscontext=u:object_r:labeledfs:s0,context=u:object_r:system_file:s0
-    mount overlay overlay /system/app ro lowerdir=/data/vendor/gapps/root/system/app:/system/app,fscontext=u:object_r:labeledfs:s0,context=u:object_r:system_file:s0
-    mount overlay overlay /system/priv-app ro lowerdir=/data/vendor/gapps/root/system/priv-app:/system/priv-app,fscontext=u:object_r:labeledfs:s0,context=u:object_r:system_file:s0
-    mount overlay overlay /system/etc/permissions ro lowerdir=/data/vendor/gapps/root/system/etc/permissions:/system/etc/permissions,fscontext=u:object_r:labeledfs:s0,context=u:object_r:system_file:s0
-    mount overlay overlay /system_ext/app ro lowerdir=/data/vendor/gapps/root/system_ext/app:/system_ext/app,fscontext=u:object_r:labeledfs:s0,context=u:object_r:system_file:s0
-    mount overlay overlay /system_ext/priv-app ro lowerdir=/data/vendor/gapps/root/system_ext/priv-app:/system_ext/priv-app,fscontext=u:object_r:labeledfs:s0,context=u:object_r:system_file:s0
-    mount overlay overlay /system_ext/etc/permissions ro lowerdir=/data/vendor/gapps/root/system_ext/etc/permissions:/system_ext/etc/permissions,fscontext=u:object_r:labeledfs:s0,context=u:object_r:system_file:s0
-    # The stand-in launcher and setup app give way to Google's: an empty directory is
-    # mounted over them (only exists when Google apps are installed).
-    mount none /data/vendor/gapps/root/hide /product/priv-app/TvSampleLeanbackLauncher bind
-    mount none /data/vendor/gapps/root/hide /product/app/TvSampleLeanbackLauncher bind
-    mount none /data/vendor/gapps/root/hide /product/priv-app/TvProvision bind
-    mount none /data/vendor/gapps/root/hide /product/app/TvProvision bind
+    mkdir /mnt/vendor/gapps 0755 root root
+    mount ext4 loop@/data/vendor/gapps/gapps.img /mnt/vendor/gapps ro nodev nosuid fscontext=u:object_r:labeledfs:s0,context=u:object_r:system_file:s0
+    mount overlay overlay /product/app ro lowerdir=/mnt/vendor/gapps/product/app:/product/app,fscontext=u:object_r:labeledfs:s0,context=u:object_r:system_file:s0
+    mount overlay overlay /product/priv-app ro lowerdir=/mnt/vendor/gapps/product/priv-app:/product/priv-app,fscontext=u:object_r:labeledfs:s0,context=u:object_r:system_file:s0
+    mount overlay overlay /product/overlay ro lowerdir=/mnt/vendor/gapps/product/overlay:/product/overlay,fscontext=u:object_r:labeledfs:s0,context=u:object_r:system_file:s0
+    mount overlay overlay /product/lib64 ro lowerdir=/mnt/vendor/gapps/product/lib64:/product/lib64,fscontext=u:object_r:labeledfs:s0,context=u:object_r:system_lib_file:s0
+    mount overlay overlay /product/etc/security ro lowerdir=/mnt/vendor/gapps/product/etc/security:/product/etc/security,fscontext=u:object_r:labeledfs:s0,context=u:object_r:system_file:s0
+    mount overlay overlay /product/framework ro lowerdir=/mnt/vendor/gapps/product/framework:/product/framework,fscontext=u:object_r:labeledfs:s0,context=u:object_r:system_file:s0
+    mount overlay overlay /product/etc/permissions ro lowerdir=/mnt/vendor/gapps/product/etc/permissions:/product/etc/permissions,fscontext=u:object_r:labeledfs:s0,context=u:object_r:system_file:s0
+    mount overlay overlay /product/etc/sysconfig ro lowerdir=/mnt/vendor/gapps/product/etc/sysconfig:/product/etc/sysconfig,fscontext=u:object_r:labeledfs:s0,context=u:object_r:system_file:s0
+    mount overlay overlay /product/etc/default-permissions ro lowerdir=/mnt/vendor/gapps/product/etc/default-permissions:/product/etc/default-permissions,fscontext=u:object_r:labeledfs:s0,context=u:object_r:system_file:s0
+    mount overlay overlay /system/app ro lowerdir=/mnt/vendor/gapps/system/app:/system/app,fscontext=u:object_r:labeledfs:s0,context=u:object_r:system_file:s0
+    mount overlay overlay /system/priv-app ro lowerdir=/mnt/vendor/gapps/system/priv-app:/system/priv-app,fscontext=u:object_r:labeledfs:s0,context=u:object_r:system_file:s0
+    mount overlay overlay /system/etc/permissions ro lowerdir=/mnt/vendor/gapps/system/etc/permissions:/system/etc/permissions,fscontext=u:object_r:labeledfs:s0,context=u:object_r:system_file:s0
+    mount overlay overlay /system_ext/app ro lowerdir=/mnt/vendor/gapps/system_ext/app:/system_ext/app,fscontext=u:object_r:labeledfs:s0,context=u:object_r:system_file:s0
+    mount overlay overlay /system_ext/priv-app ro lowerdir=/mnt/vendor/gapps/system_ext/priv-app:/system_ext/priv-app,fscontext=u:object_r:labeledfs:s0,context=u:object_r:system_file:s0
+    mount overlay overlay /system_ext/etc/permissions ro lowerdir=/mnt/vendor/gapps/system_ext/etc/permissions:/system_ext/etc/permissions,fscontext=u:object_r:labeledfs:s0,context=u:object_r:system_file:s0
+    # The stand-in launcher and setup app give way to Google's: an empty directory from
+    # the image is mounted over them (exists only when Google apps are installed).
+    mount none /mnt/vendor/gapps/hide /product/priv-app/TvSampleLeanbackLauncher bind
+    mount none /mnt/vendor/gapps/hide /product/app/TvSampleLeanbackLauncher bind
+    mount none /mnt/vendor/gapps/hide /product/priv-app/TvProvision bind
+    mount none /mnt/vendor/gapps/hide /product/app/TvProvision bind
 
 service vendor.opi4_gapps_install /vendor/bin/opi4_gapps
     user root

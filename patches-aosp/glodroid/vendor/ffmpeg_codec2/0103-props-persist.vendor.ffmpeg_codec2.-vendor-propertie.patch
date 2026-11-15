@@ -1,0 +1,60 @@
+From d98863e7a3ebc086a2058ba554eb56bbf8993d59 Mon Sep 17 00:00:00 2001
+From: opi4 <opi4@localhost>
+Date: Mon, 16 Nov 2026 04:23:15 +0500
+Subject: [PATCH] props: persist.vendor.ffmpeg_codec2.* (vendor properties must
+ be vendor-prefixed)
+
+Without the vendor. prefix the properties cannot be given a vendor SELinux type,
+so enforcing builds could neither set nor read them (default_prop).
+---
+ C2FFMPEGVideoDecodeComponent.cpp | 2 +-
+ ffmpeg_utils/ffmpeg_hwaccel.c    | 2 +-
+ service.cpp                      | 6 +++---
+ 3 files changed, 5 insertions(+), 5 deletions(-)
+
+diff --git a/C2FFMPEGVideoDecodeComponent.cpp b/C2FFMPEGVideoDecodeComponent.cpp
+index a983b9b..847446f 100644
+--- a/C2FFMPEGVideoDecodeComponent.cpp
++++ b/C2FFMPEGVideoDecodeComponent.cpp
+@@ -103,7 +103,7 @@ c2_status_t C2FFMPEGVideoDecodeComponent::openDecoder() {
+ 
+     // Find decoder again as codec_id may have changed.
+     if (mCtx->codec_id == AV_CODEC_ID_H264 &&
+-            base::GetBoolProperty("persist.ffmpeg_codec2.v4l2.h264", false)) {
++            base::GetBoolProperty("persist.vendor.ffmpeg_codec2.v4l2.h264", false)) {
+         mCtx->codec = avcodec_find_decoder_by_name("h264_v4l2m2m");
+     } else {
+         mCtx->codec = avcodec_find_decoder(mCtx->codec_id);
+diff --git a/ffmpeg_utils/ffmpeg_hwaccel.c b/ffmpeg_utils/ffmpeg_hwaccel.c
+index 06f3647..f6cdcf1 100644
+--- a/ffmpeg_utils/ffmpeg_hwaccel.c
++++ b/ffmpeg_utils/ffmpeg_hwaccel.c
+@@ -7,7 +7,7 @@
+ #include "libavutil/opt.h"
+ 
+ int ffmpeg_hwaccel_init(AVCodecContext *avctx) {
+-    if (avctx->codec_id != AV_CODEC_ID_HEVC || !property_get_bool("persist.ffmpeg_codec2.v4l2.h265", 0))
++    if (avctx->codec_id != AV_CODEC_ID_HEVC || !property_get_bool("persist.vendor.ffmpeg_codec2.v4l2.h265", 0))
+         return 0;
+ 
+     // Find codec information. At this point, AVCodecContext.codec may not be
+diff --git a/service.cpp b/service.cpp
+index 8136d60..224e0d5 100644
+--- a/service.cpp
++++ b/service.cpp
+@@ -139,9 +139,9 @@ public:
+             listComponents() override {
+         std::vector<std::shared_ptr<const C2Component::Traits>> ret;
+         // FIXME: Prefer OMX codecs for the time being...
+-        uint32_t defaultRank = ::android::base::GetUintProperty("persist.ffmpeg_codec2.rank", 0x110u);
+-        uint32_t defaultRankAudio = ::android::base::GetUintProperty("persist.ffmpeg_codec2.rank.audio", defaultRank);
+-        uint32_t defaultRankVideo = ::android::base::GetUintProperty("persist.ffmpeg_codec2.rank.video", defaultRank);
++        uint32_t defaultRank = ::android::base::GetUintProperty("persist.vendor.ffmpeg_codec2.rank", 0x110u);
++        uint32_t defaultRankAudio = ::android::base::GetUintProperty("persist.vendor.ffmpeg_codec2.rank.audio", defaultRank);
++        uint32_t defaultRankVideo = ::android::base::GetUintProperty("persist.vendor.ffmpeg_codec2.rank.video", defaultRank);
+         ALOGD("listComponents: defaultRank=%x, defaultRankAudio=%x, defaultRankVideo=%x",
+               defaultRank, defaultRankAudio, defaultRankVideo);
+ #define RANK_DISABLED 0xFFFFFFFF
+-- 
+2.34.1
+

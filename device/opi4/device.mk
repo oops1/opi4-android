@@ -38,13 +38,13 @@ PRODUCT_COPY_FILES += \
 PRODUCT_VENDOR_PROPERTIES += \
     ro.opengles.version=196609
 
-# Hardware codecs through ffmpeg_codec2. persist.ffmpeg_codec2.v4l2.h264 is NOT the request
+# Hardware codecs through ffmpeg_codec2. persist.vendor.ffmpeg_codec2.v4l2.h264 is NOT the request
 # API: it switches H.264 to h264_v4l2m2m (stateful), which RK3399 lacks, so every H.264
 # playback failed (black Android TV setup wizard). Only HEVC uses the v4l2-request hwaccel.
 PRODUCT_VENDOR_PROPERTIES += \
-    persist.ffmpeg_codec2.v4l2.h265=true \
-    persist.ffmpeg_codec2.rank.audio=16 \
-    persist.ffmpeg_codec2.rank.video=128 \
+    persist.vendor.ffmpeg_codec2.v4l2.h265=true \
+    persist.vendor.ffmpeg_codec2.rank.audio=16 \
+    persist.vendor.ffmpeg_codec2.rank.video=128 \
 
 # DRM: GloDroid asks for the HIDL clearkey HAL, which no longer builds on A16, so there was no
 # DRM HAL at all and MediaDrm queries threw (YouTube for Android TV aborted at start).

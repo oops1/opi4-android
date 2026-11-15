@@ -11,6 +11,7 @@
 #include <dirent.h>
 #include <fcntl.h>
 #include <sys/stat.h>
+#include <sys/wait.h>
 #include <unistd.h>
 
 #include <memory>
@@ -30,9 +31,61 @@ using android::base::StartsWith;
 using android::base::StringPrintf;
 
 static const std::string kBase = "/data/vendor/gapps";
-static const std::string kRoot = kBase + "/root";      // active tree: <partition>/<dir>/...
-static const std::string kStage = kBase + "/staging";  // being unpacked
+static const std::string kImage = kBase + "/gapps.img";  // ext4: <partition>/<dir>/..., hide/
+static const std::string kStage = kBase + "/staging";    // unpacked zip, turned into the image
 static const std::string kStamp = kBase + "/installed";
+// Legacy layout (plain directory); removed when found.
+static const std::string kRoot = kBase + "/root";
+
+// The overlays' backing files must not live on /data: kernels >= 6.10 check the mounter's
+// (init's) execute right on the backing file when an app maps a library, and init may not
+// execute data files. So the tree goes into an ext4 image that init loop-mounts with the
+// system_file label (opi4_gapps.rc).
+static bool Run(std::vector<std::string> args) {
+    std::vector<char*> argv;
+    for (auto& a : args) argv.push_back(a.data());
+    argv.push_back(nullptr);
+    pid_t pid = fork();
+    if (pid == 0) {
+        execv(argv[0], argv.data());
+        _exit(127);
+    }
+    int status = 0;
+    if (pid < 0 || waitpid(pid, &status, 0) != pid || !WIFEXITED(status) || WEXITSTATUS(status)) {
+        LOG(ERROR) << android::base::Join(args, ' ') << " failed, status " << status;
+        return false;
+    }
+    return true;
+}
+
+static uint64_t TreeBytes(const std::string& path) {
+    struct stat st;
+    if (lstat(path.c_str(), &st) != 0) return 0;
+    if (!S_ISDIR(st.st_mode)) return (st.st_size + 4095) / 4096 * 4096;
+    uint64_t sum = 4096;
+    std::unique_ptr<DIR, decltype(&closedir)> d(opendir(path.c_str()), closedir);
+    if (!d) return sum;
+    while (dirent* e = readdir(d.get())) {
+        std::string n = e->d_name;
+        if (n != "." && n != "..") sum += TreeBytes(path + "/" + n);
+    }
+    return sum;
+}
+
+static bool MakeImage() {
+    uint64_t bytes = TreeBytes(kStage);
+    uint64_t blocks = (bytes + bytes / 10) / 4096 + 16384;  // +10% metadata, +64 MiB
+    std::string tmp = kImage + ".new";
+    unlink(tmp.c_str());
+    if (!Run({"/vendor/bin/mke2fs", "-q", "-t", "ext4", "-b", "4096", "-O", "^has_journal",
+              "-m", "0", "-L", "gapps", tmp, std::to_string(blocks)}) ||
+        !Run({"/vendor/bin/e2fsdroid", "-f", kStage, "-a", "/mnt/vendor/gapps", tmp})) {
+        unlink(tmp.c_str());
+        return false;
+    }
+    chmod(tmp.c_str(), 0644);
+    return rename(tmp.c_str(), kImage.c_str()) == 0;
+}
 
 static bool RemoveTree(const std::string& path) {
     struct stat st;
@@ -135,7 +188,8 @@ static int DoInstall() {
               std::string::npos;
     for (const auto& vol : Volumes()) {
         if (access((vol + "/REMOVE-GAPPS").c_str(), F_OK) == 0) {
-            if (access(kRoot.c_str(), F_OK) != 0) return 0;
+            if (access(kImage.c_str(), F_OK) != 0 && access(kRoot.c_str(), F_OK) != 0) return 0;
+            unlink(kImage.c_str());
             RemoveTree(kRoot);
             unlink(kStamp.c_str());
             sync();
@@ -167,11 +221,13 @@ static int DoInstall() {
                 android::base::SetProperty("vendor.opi4.gapps.state", "failed");
                 return 1;
             }
-            RemoveTree(kRoot);
-            if (rename(kStage.c_str(), kRoot.c_str()) != 0) {
-                PLOG(ERROR) << "rename";
+            bool imaged = MakeImage();
+            RemoveTree(kStage);
+            if (!imaged) {
+                android::base::SetProperty("vendor.opi4.gapps.state", "failed");
                 return 1;
             }
+            RemoveTree(kRoot);
             android::base::WriteStringToFile(stamp, kStamp);
             sync();
             android::base::SetProperty("vendor.opi4.gapps.state", "installed");

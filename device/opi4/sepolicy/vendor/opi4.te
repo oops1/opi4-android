@@ -19,8 +19,8 @@ hal_client_domain(hal_graphics_composer_default, hal_graphics_allocator)
 # Apps run with MLS categories; the shared buffers are level s0.
 typeattribute hal_graphics_allocator_default_tmpfs mlstrustedobject;
 
-# GloDroid labels /dev/video0 as a camera (Raspberry Pi); here it is the rkvdec/Hantro decoder.
-allow mediacodec camera_device:chr_file rw_file_perms;
+# /dev/video*, /dev/media* are the rkvdec/Hantro decoders here (video_device, file_contexts;
+# GloDroid's Raspberry Pi camera labels for video0/media1/media2 are dropped by a patch).
 
 # ffmpeg_codec2 options (persist.ffmpeg_codec2.*), set from its init script, read by mediacodec
 vendor_internal_prop(vendor_ffmpeg_codec2_prop)
