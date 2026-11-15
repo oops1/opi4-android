@@ -34,5 +34,27 @@ PRODUCT_VENDOR_PROPERTIES += \
     persist.ffmpeg_codec2.rank.audio=16 \
     persist.ffmpeg_codec2.rank.video=128 \
 
+# Bluetooth profiles. Since A13 every profile is off unless its sysprop is set, which left
+# only GATT running: BLE keyboards bonded but HID host never connected them.
+# BCM4345C5 is BT 5.0 without ISO channels, so LE Audio stays off. A2DP is software-encoded
+# (no offload); the stack carries SBC, AAC, aptX/aptX HD, LDAC and Opus encoders.
+PRODUCT_VENDOR_PROPERTIES += \
+    bluetooth.profile.gatt.enabled=true \
+    bluetooth.profile.a2dp.source.enabled=true \
+    bluetooth.profile.avrcp.target.enabled=true \
+    bluetooth.profile.hid.host.enabled=true \
+    bluetooth.profile.pan.nap.enabled=true \
+    bluetooth.profile.pan.panu.enabled=true \
+    bluetooth.profile.opp.enabled=true \
+    bluetooth.profile.asha.central.enabled=false \
+    bluetooth.profile.bap.broadcast.assist.enabled=false \
+    bluetooth.profile.bap.unicast.client.enabled=false \
+    bluetooth.profile.bas.client.enabled=false \
+    bluetooth.profile.ccp.server.enabled=false \
+    bluetooth.profile.csip.set_coordinator.enabled=false \
+    bluetooth.profile.hap.client.enabled=false \
+    bluetooth.profile.vcp.controller.enabled=false \
+    persist.bluetooth.a2dp_offload.disabled=true \
+
 # No Vulkan on Midgard: keep HWUI and RenderEngine on Skia/GL
 TARGET_USES_VULKAN := false
