@@ -1,0 +1,31 @@
+From 63b403daeb45dc130c47a14c74ac4936c9ea82d6 Mon Sep 17 00:00:00 2001
+From: opi4 <opi4@localhost>
+Date: Mon, 16 Nov 2026 02:35:07 +0500
+Subject: [PATCH] uboot: fix userdata expansion to the end of the disk
+
+'gpt read' prints type= between size= and uuid=, and the replacement string
+contained the pattern itself, so the expression never matched: fresh SD cards
+kept userdata at the image size (~380 MB). Use a back-reference for start.
+---
+ platform/uboot/bootscript.cpp | 5 ++++-
+ 1 file changed, 4 insertions(+), 1 deletion(-)
+
+diff --git a/platform/uboot/bootscript.cpp b/platform/uboot/bootscript.cpp
+index 25aa523..85097dc 100644
+--- a/platform/uboot/bootscript.cpp
++++ b/platform/uboot/bootscript.cpp
+@@ -171,7 +171,10 @@ FUNC_BEGIN(rename_and_expand_userdata_placeholder)
+ 
+     echo "Expanding userdata partition to fill the entire drive...";
+     gpt read mmc ${mmc_bootdev} expanded_layout
+-    setexpr final_layout gsub "name=userdata,start=[^,]*,size=[^,]*,uuid" "name=userdata,start=[^,]*,size=-,uuid" ${expanded_layout}
++    /* Keep the start (back-reference) and let the last partition run to the end of the disk.
++     * 'gpt read' lists type= between size= and uuid=, and a replacement cannot contain a
++     * pattern, so the old expression never matched and userdata stayed at the image size. */
++    setexpr final_layout gsub "name=userdata,start=([^,]*),size=[^,]*" "name=userdata,start=\\1,size=-" ${expanded_layout}
+     gpt write mmc ${mmc_bootdev} ${final_layout}
+     echo "The userdata partition has been expanded.";
+   fi;
+-- 
+2.34.1
+
