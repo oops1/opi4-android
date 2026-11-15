@@ -16,6 +16,21 @@ allow {
   cameraserver
 } hal_graphics_allocator_default_tmpfs:file { getattr read write map };
 hal_client_domain(hal_graphics_composer_default, hal_graphics_allocator)
+# Apps run with MLS categories; the shared buffers are level s0.
+typeattribute hal_graphics_allocator_default_tmpfs mlstrustedobject;
+
+# GloDroid labels /dev/video0 as a camera (Raspberry Pi); here it is the rkvdec/Hantro decoder.
+allow mediacodec camera_device:chr_file rw_file_perms;
+
+# ffmpeg_codec2 options (persist.ffmpeg_codec2.*), set from its init script, read by mediacodec
+vendor_internal_prop(vendor_ffmpeg_codec2_prop)
+set_prop(vendor_init, vendor_ffmpeg_codec2_prop)
+get_prop(mediacodec, vendor_ffmpeg_codec2_prop)
+
+# Block device stats on the SD/eMMC hosts, queue tuning by init
+allow storaged sysfs_devices_block:dir r_dir_perms;
+allow storaged sysfs_devices_block:file r_file_perms;
+allow init sysfs_devices_block:file w_file_perms;
 
 # minigbm/Mesa probe optional vendor.* debug properties everywhere; reading them is
 # not needed (the defaults apply), silence the noise.

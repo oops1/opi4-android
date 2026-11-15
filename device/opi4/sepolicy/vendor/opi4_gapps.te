@@ -22,4 +22,8 @@ set_prop(opi4_gapps, vendor_opi4_gapps_prop)
 
 # init mounts the overlays; overlayfs keeps checking the mounter's rights on the layers
 allow init opi4_gapps_data_file:dir { mounton r_dir_perms };
-allow init opi4_gapps_data_file:file { r_file_perms map };
+allow init opi4_gapps_data_file:file { r_file_perms map execute };
+# context= gives the files the image's labels; fscontext=labeledfs keeps the superblock
+# label every domain may statfs (see opi4_gapps.rc)
+allow init { system_file system_lib_file }:filesystem { relabelto relabelfrom associate };
+allow init system_lib_file:dir mounton;
