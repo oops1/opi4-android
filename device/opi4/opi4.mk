@@ -87,6 +87,8 @@ PRODUCT_COPY_FILES += \
     $(GAPPS_KEEP):$(TARGET_COPY_OUT_PRODUCT)/priv-app/.keep \
     $(GAPPS_KEEP):$(TARGET_COPY_OUT_PRODUCT)/overlay/.keep \
     $(GAPPS_KEEP):$(TARGET_COPY_OUT_PRODUCT)/framework/.keep \
+    $(GAPPS_KEEP):$(TARGET_COPY_OUT_PRODUCT)/lib64/.keep \
+    $(GAPPS_KEEP):$(TARGET_COPY_OUT_PRODUCT)/etc/security/.keep \
     $(GAPPS_KEEP):$(TARGET_COPY_OUT_PRODUCT)/etc/permissions/.keep \
     $(GAPPS_KEEP):$(TARGET_COPY_OUT_PRODUCT)/etc/sysconfig/.keep \
     $(GAPPS_KEEP):$(TARGET_COPY_OUT_PRODUCT)/etc/default-permissions/.keep \

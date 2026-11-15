@@ -55,7 +55,11 @@ static bool MkdirP(const std::string& path) {
     for (const auto& part : android::base::Split(path, "/")) {
         if (part.empty()) continue;
         cur += "/" + part;
-        if (mkdir(cur.c_str(), 0755) != 0 && errno != EEXIST) return false;
+        if (mkdir(cur.c_str(), 0755) != 0) {
+            if (errno != EEXIST) return false;
+        } else if (StartsWith(cur, kStage) && chmod(cur.c_str(), 0755) != 0) {
+            return false;  // merged overlay dirs take these modes: must be world-searchable
+        }
     }
     return true;
 }
@@ -105,7 +109,8 @@ static bool Unpack(const std::string& zip) {
         std::string out = kStage + "/" + rel;
         if (!MkdirP(android::base::Dirname(out))) { PLOG(ERROR) << out; ok = false; break; }
         android::base::unique_fd fd(open(out.c_str(), O_WRONLY | O_CREAT | O_TRUNC | O_CLOEXEC, 0644));
-        if (fd < 0 || ExtractEntryToFile(za, &entry, fd.get()) != 0) {
+        // The overlay shows the files with these modes: system_server (not root) must read them.
+        if (fd < 0 || fchmod(fd.get(), 0644) != 0 || ExtractEntryToFile(za, &entry, fd.get()) != 0) {
             LOG(ERROR) << "extract " << rel;
             ok = false;
             break;
@@ -148,6 +153,12 @@ static int DoInstall() {
             std::string stamp = StringPrintf("%s %lld", name.c_str(), (long long)st.st_size);
             std::string old;
             if (android::base::ReadFileToString(kStamp, &old) && old == stamp) return 0;
+            // still being copied onto the storage? wait until the size stops changing
+            sleep(5);
+            struct stat st2;
+            if (stat(zip.c_str(), &st2) != 0 || st2.st_size != st.st_size ||
+                st2.st_mtime != st.st_mtime)
+                return 0;
             LOG(INFO) << "installing Google apps from " << zip;
             android::base::SetProperty("vendor.opi4.gapps.state", "installing");
             RemoveTree(kStage);
@@ -173,6 +184,7 @@ static int DoInstall() {
 
 int main(int /*argc*/, char** argv) {
     android::base::InitLogging(argv, android::base::LogdLogger(android::base::SYSTEM));
+    umask(022);  // init starts services with 077; the unpacked tree must be readable by all
     // Storage can be plugged in at any time: keep looking (a few directory reads).
     for (;;) {
         if (DoInstall() != 0) sleep(300);  // a broken zip: do not spin on it

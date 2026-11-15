@@ -8,6 +8,8 @@ on post-fs-data
     mount overlay overlay /product/app ro lowerdir=/data/vendor/gapps/root/product/app:/product/app,context=u:object_r:system_file:s0
     mount overlay overlay /product/priv-app ro lowerdir=/data/vendor/gapps/root/product/priv-app:/product/priv-app,context=u:object_r:system_file:s0
     mount overlay overlay /product/overlay ro lowerdir=/data/vendor/gapps/root/product/overlay:/product/overlay,context=u:object_r:system_file:s0
+    mount overlay overlay /product/lib64 ro lowerdir=/data/vendor/gapps/root/product/lib64:/product/lib64,context=u:object_r:system_lib_file:s0
+    mount overlay overlay /product/etc/security ro lowerdir=/data/vendor/gapps/root/product/etc/security:/product/etc/security,context=u:object_r:system_file:s0
     mount overlay overlay /product/framework ro lowerdir=/data/vendor/gapps/root/product/framework:/product/framework,context=u:object_r:system_file:s0
     mount overlay overlay /product/etc/permissions ro lowerdir=/data/vendor/gapps/root/product/etc/permissions:/product/etc/permissions,context=u:object_r:system_file:s0
     mount overlay overlay /product/etc/sysconfig ro lowerdir=/data/vendor/gapps/root/product/etc/sysconfig:/product/etc/sysconfig,context=u:object_r:system_file:s0
