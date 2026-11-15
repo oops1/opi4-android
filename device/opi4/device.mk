@@ -20,9 +20,15 @@ PRODUCT_COPY_FILES += \
     $(LOCAL_PATH)/etc/modules.blocklist:$(TARGET_COPY_OUT_VENDOR_DLKM)/lib/modules/modules.blocklist \
     $(LOCAL_PATH)/etc/modules.options:$(TARGET_COPY_OUT_VENDOR_DLKM)/lib/modules/modules.options \
 
-# Boot animation (bootanimation/README.md)
+# Boot animation (bootanimation/README.md): orange outro for opi4, orange -> TV outro
+# with the hand-written "TV" for the opi4_tv product
+ifneq ($(filter %_tv,$(TARGET_PRODUCT)),)
+OPI4_BOOTANIMATION := bootanimation-tv.zip
+else
+OPI4_BOOTANIMATION := bootanimation.zip
+endif
 PRODUCT_COPY_FILES += \
-    $(LOCAL_PATH)/bootanimation/bootanimation.zip:$(TARGET_COPY_OUT_PRODUCT)/media/bootanimation.zip \
+    $(LOCAL_PATH)/bootanimation/$(OPI4_BOOTANIMATION):$(TARGET_COPY_OUT_PRODUCT)/media/bootanimation.zip \
 
 # Disable suspend while bringing the board up
 PRODUCT_COPY_FILES += \

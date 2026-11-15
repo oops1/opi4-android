@@ -239,6 +239,197 @@ def outro_frame(i):
     return frame.convert("RGB")
 
 
+# ---------------------------------------------------------------- TV variant outro
+OUTRO_TV = 132              # 4.4 s
+TV_A, TV_B = 1.5 * R, 1.02 * R     # half width / half height of the TV body
+SCREEN = (24, 26, 30)
+
+
+def superellipse_points(a, b, n, cx=None, cy=None, count=720):
+    cx = CX if cx is None else cx
+    cy = CY if cy is None else cy
+    pts = []
+    for j in range(count):
+        th = 2 * math.pi * j / count
+        c, s = math.cos(th), math.sin(th)
+        x = a * math.copysign(abs(c) ** (2 / n), c)
+        y = b * math.copysign(abs(s) ** (2 / n), s)
+        pts.append(((cx + x) * SS, (cy + y) * SS))
+    return pts
+
+
+def render_tv(t, glow=0.35):
+    """Orange (t=0) -> stylised orange TV (t=1): the sphere stretches into a rounded
+    box, the peel turns to smooth plastic, a dark screen opens, the leaf gives way to
+    antennas and two little legs grow."""
+    e = ease_in_out(t)
+    a, b = R + (TV_A - R) * e, R + (TV_B - R) * e
+    n = 2 + 3.5 * e
+    big = (W * SS, H * SS)
+    mask = Image.new("L", big, 0)
+    ImageDraw.Draw(mask).polygon(superellipse_points(a, b, n), fill=255)
+    mask = mask.resize((W, H), Image.LANCZOS)
+
+    yy, xx = np.mgrid[0:H, 0:W].astype(np.float32)
+    hx, hy = CX - a * 0.35, CY - b * 0.4
+    d_or = np.clip(np.sqrt((xx - hx) ** 2 + (yy - hy) ** 2) / (max(a, b) * 1.9), 0, 1)[..., None]
+    o1 = np.array(ORANGE_HI, np.float32) * (1 - d_or) + np.array(ORANGE_MID, np.float32) * d_or
+    o2 = np.array(ORANGE_MID, np.float32) * (1 - d_or) + np.array(ORANGE_RIM, np.float32) * d_or
+    col = np.where(d_or < 0.35, o1 + (o2 - o1) * (d_or / 0.35), o2)
+    col = col + (np.asarray(PEEL, np.float32)[..., None] / 255 - 0.5) * 34 * (1 - e)
+    fill = Image.fromarray(np.clip(col, 0, 255).astype(np.uint8), "RGB")
+
+    frame = Image.new("RGB", (W, H), (0, 0, 0))
+    halo = mask.filter(ImageFilter.GaussianBlur(40)).point(lambda v: int(v * glow))
+    frame = Image.composite(Image.new("RGB", (W, H), ORANGE_MID), frame, halo)
+    frame.paste(fill, (0, 0), mask)
+
+    layer = Image.new("RGBA", big, (0, 0, 0, 0))
+    ld = ImageDraw.Draw(layer)
+    # leaf and stem shrink away during the first half
+    leaf = max(0.0, 1 - e * 2)
+    # screen
+    sc = ease_out(max(0.0, (t - 0.35) / 0.65))
+    if sc > 0:
+        sa, sb = a * 0.80 * sc, b * 0.72 * sc
+        ld.polygon(superellipse_points(sa, sb, 5.0, CX - a * 0.06, CY), fill=SCREEN + (255,))
+        # glare stripe on the glass
+        gx, gy = (CX - a * 0.06) * SS, CY * SS
+        ld.polygon([(gx - sa * 0.75 * SS, gy - sb * 0.55 * SS), (gx - sa * 0.35 * SS, gy - sb * 0.85 * SS),
+                    (gx - sa * 0.15 * SS, gy - sb * 0.85 * SS), (gx - sa * 0.65 * SS, gy - sb * 0.35 * SS)],
+                   fill=mix(SCREEN, (95, 100, 110), sc) + (255,))   # solid: RGBA draw replaces pixels
+        # two knobs on the right
+        for k, ky in enumerate((-0.25, 0.2)):
+            r = 11 * sc * SS
+            kx, kyy = (CX + a * 0.86) * SS, (CY + b * ky) * SS
+            ld.ellipse([kx - r, kyy - r, kx + r, kyy + r], fill=(120, 55, 5, 255))
+    # antennas grow from the top
+    an = ease_out(max(0.0, (t - 0.45) / 0.55))
+    if an > 0:
+        top = (CX * SS, (CY - b) * SS)
+        for ang in (-35, 32):
+            rad = math.radians(-90 + ang)
+            L = 115 * an * SS
+            end = (top[0] + L * math.cos(rad), top[1] + L * math.sin(rad))
+            ld.line([top, end], fill=(70, 70, 75, 255), width=int(6 * SS))
+            r = 9 * an * SS
+            ld.ellipse([end[0] - r, end[1] - r, end[0] + r, end[1] + r], fill=ORANGE_MID + (255,))
+        r = 16 * an * SS
+        ld.pieslice([top[0] - r, top[1] - r, top[0] + r, top[1] + r], 180, 360, fill=(70, 70, 75, 255))
+        # legs
+        for sx in (-1, 1):
+            x0, y0 = (CX + sx * a * 0.55) * SS, (CY + b * 0.97) * SS
+            ld.line([(x0, y0), (x0 + sx * 18 * an * SS, y0 + 30 * an * SS)], fill=(70, 70, 75, 255),
+                    width=int(8 * SS))
+    layer = layer.resize((W, H), Image.LANCZOS)
+    frame = frame.convert("RGBA")
+    frame.alpha_composite(layer)
+    return frame.convert("RGB"), leaf
+
+
+# hand-written "TV": strokes in a unit box (x right, y down), drawn in this order
+TV_STROKES = [
+    [(0.02, 0.10), (0.20, 0.06), (0.40, 0.04), (0.56, 0.05)],                 # T bar
+    [(0.29, 0.06), (0.30, 0.40), (0.28, 0.75), (0.26, 1.00)],                 # T stem
+    [(0.56, 0.08), (0.64, 0.45), (0.72, 0.80), (0.77, 1.00),
+     (0.84, 0.70), (0.92, 0.35), (1.00, 0.02)],                               # V
+]
+
+
+def _smooth(points, steps=24):
+    """Catmull-Rom through the control points -> dense polyline."""
+    pts = [points[0]] + points + [points[-1]]
+    out = []
+    for i in range(1, len(pts) - 2):
+        p0, p1, p2, p3 = pts[i - 1], pts[i], pts[i + 1], pts[i + 2]
+        for s in range(steps):
+            u = s / steps
+            u2, u3 = u * u, u * u * u
+            out.append(tuple(0.5 * ((2 * p1[k]) + (-p0[k] + p2[k]) * u +
+                                    (2 * p0[k] - 5 * p1[k] + 4 * p2[k] - p3[k]) * u2 +
+                                    (-p0[k] + 3 * p1[k] - 3 * p2[k] + p3[k]) * u3) for k in (0, 1)))
+    out.append(points[-1])
+    return out
+
+
+def handwriting_layer(progress, x0, y0, h, color):
+    """Draw the first `progress` (0..1) of the TV strokes, as if written with a brush."""
+    w = h * 1.05
+    polys = [[(x0 + x * w, y0 + y * h) for x, y in _smooth(s)] for s in TV_STROKES]
+    lens = [sum(math.dist(p[i], p[i + 1]) for i in range(len(p) - 1)) for p in polys]
+    total, left = sum(lens), progress * sum(lens)
+    layer = Image.new("RGBA", (W * SS, H * SS), (0, 0, 0, 0))
+    ld = ImageDraw.Draw(layer)
+    width = h * 0.13
+    for poly, ln in zip(polys, lens):
+        if left <= 0:
+            break
+        acc, pts = 0.0, [poly[0]]
+        for i in range(len(poly) - 1):
+            seg = math.dist(poly[i], poly[i + 1])
+            if acc + seg >= left:
+                f = (left - acc) / seg
+                pts.append((poly[i][0] + (poly[i + 1][0] - poly[i][0]) * f,
+                            poly[i][1] + (poly[i + 1][1] - poly[i][1]) * f))
+                break
+            acc += seg
+            pts.append(poly[i + 1])
+        sp = [(x * SS, y * SS) for x, y in pts]
+        for i, (x, y) in enumerate(sp):        # brush: round dabs, slightly thicker mid-stroke
+            k = i / max(1, len(sp) - 1)
+            r = width * SS * (0.75 + 0.35 * math.sin(math.pi * k)) / 2
+            ld.ellipse([x - r, y - r, x + r, y + r], fill=color + (255,))
+        if len(sp) > 1:
+            ld.line(sp, fill=color + (255,), width=int(width * SS * 0.8), joint="curve")
+        left -= ln
+    return layer.resize((W, H), Image.LANCZOS)
+
+
+def outro_tv_frame(i):
+    fr = i
+    # 0..30: blob -> orange, "android 16" flies out, "Orange Pi 4" appears (by frame ~36)
+    # 36..70: orange -> TV;  66..104: "TV" is written (a second after "Orange Pi 4");  hold
+    text_y = CY + R + 160
+    big_h = 150
+    font = ImageFont.truetype(FONT, 72)
+    opi_w = ImageDraw.Draw(Image.new("L", (1, 1))).textlength("Orange Pi 4", font=font)
+    tv_w = big_h * 1.05
+    gap = 34
+    shift = -(tv_w + gap) / 2                      # keep "Orange Pi 4" + "TV" centred
+
+    m = ease_in_out(min(1.0, fr / 30))
+    if fr < 36:
+        leaf = ease_out(min(1.0, max(0.0, (fr - 10) / 24)))
+        frame = render_orange(R, 1.0 - m, 0.0, m, leaf, 0.35, loop_weights(0.0), loop_colors(0.0))
+    else:
+        t = min(1.0, (fr - 36) / 34)
+        leaf = max(0.0, 1 - ease_in_out(t) * 2.2)
+        frame = render_orange(R, 0.0, 0.0, 1.0, leaf, 0.35, loop_weights(0.0), loop_colors(0.0)) \
+            if t <= 0 else render_tv(t)[0]
+        if leaf > 0 and t > 0:
+            # let the leaf fade out over the morphing body
+            orange_leaf = render_orange(R, 0.0, 0.0, 1.0, 1.0, 0.35, loop_weights(0.0), loop_colors(0.0))
+            lm = Image.new("L", (W, H), 0)
+            ImageDraw.Draw(lm).rectangle([CX - 40, CY - R - 120, CX + 160, CY - R + 2], fill=int(255 * leaf))
+            frame = Image.composite(orange_leaf, frame, lm)
+
+    frame = frame.convert("RGBA")
+    f = min(1.0, fr / 13.5)
+    if f < 1:
+        frame.alpha_composite(text_layer([("android", (232, 234, 237)), (" 16", (61, 220, 132))],
+                                         1 + 5 * f ** 2.2, 1 - ease_in_out(f), text_y))
+    g = ease_out(min(1.0, max(0.0, (fr - 9) / 27)))
+    if g > 0:
+        lay = text_layer([("Orange Pi", ORANGE_MID), (" 4", (232, 234, 237))], 0.25 + 0.75 * g, g, text_y)
+        frame.alpha_composite(lay.transform(lay.size, Image.AFFINE, (1, 0, -shift * g, 0, 1, 0)))
+    hw = min(1.0, max(0.0, (fr - 66) / 38))
+    if hw > 0:
+        x0 = CX + opi_w / 2 + shift + gap
+        frame.alpha_composite(handwriting_layer(ease_in_out(hw), x0, text_y - big_h * 0.62, big_h,
+                                                (255, 170, 60)))
+    return frame.convert("RGB")
+
+
 def png_bytes(img):
     b = io.BytesIO()
     img.save(b, "PNG", optimize=True)
@@ -247,23 +438,29 @@ def png_bytes(img):
 
 def main():
     preview_only = "--preview-only" in sys.argv
+    tv = "--tv" in sys.argv
+    sfx = "-tv" if tv else ""
     frames = [("part0", i, intro_frame(i)) for i in range(INTRO)]
     frames += [("part1", i, loop_frame(i)) for i in range(LOOP)]
-    frames += [("part2", i, outro_frame(i)) for i in range(OUTRO)]
+    if tv:
+        frames += [("part2", i, outro_tv_frame(i)) for i in range(OUTRO_TV)]
+    else:
+        frames += [("part2", i, outro_frame(i)) for i in range(OUTRO)]
+    n_out = OUTRO_TV if tv else OUTRO
 
     # preview: intro + one loop + outro + a 1 s hold of the last frame, 640x360
     small = [f.resize((640, 360), Image.LANCZOS) for _, _, f in frames]
     small += [small[-1]] * FPS
-    small[0].save(os.path.join(HERE, "preview.gif"), save_all=True, append_images=small[1:],
+    small[0].save(os.path.join(HERE, f"preview{sfx}.gif"), save_all=True, append_images=small[1:],
                   duration=int(1000 / FPS), loop=0, optimize=True)
-    frames[INTRO + LOOP // 3][2].save(os.path.join(HERE, "preview-still.png"))
-    frames[INTRO + LOOP + OUTRO // 3][2].save(os.path.join(HERE, "preview-outro-mid.png"))
-    frames[-1][2].save(os.path.join(HERE, "preview-outro-end.png"))
-    print("preview.gif written")
+    frames[INTRO + LOOP // 3][2].save(os.path.join(HERE, f"preview{sfx}-still.png"))
+    frames[INTRO + LOOP + n_out // 2][2].save(os.path.join(HERE, f"preview{sfx}-outro-mid.png"))
+    frames[-1][2].save(os.path.join(HERE, f"preview{sfx}-outro-end.png"))
+    print(f"preview{sfx}.gif written")
     if preview_only:
         return
 
-    out = os.path.join(HERE, "bootanimation.zip")
+    out = os.path.join(HERE, f"bootanimation{sfx}.zip")
     with zipfile.ZipFile(out, "w", zipfile.ZIP_STORED) as z:
         # c = always play fully (intro), p = loop until boot completes
         # c = always played fully; p 0 = loop until boot completes; the final c part runs once
