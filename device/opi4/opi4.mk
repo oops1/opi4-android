@@ -45,3 +45,14 @@ GD_NO_DEFAULT_CAMERA := true
 GD_NO_DEFAULT_MODEM := true
 
 $(call inherit-product, $(LOCAL_PATH)/device.mk)
+
+# Google apps (MindTheGapps, branch baklava, cloned to vendor/gapps; not part of this repo).
+# Proprietary and not redistributable: build "WITH_GAPPS=false m" for images meant to be shared.
+# The TV variant needs the Google TV set instead, so it is left out there.
+ifneq ($(WITH_GAPPS),false)
+ifeq ($(filter %_tv,$(TARGET_PRODUCT)),)
+ifneq ($(wildcard vendor/gapps/arm64/arm64-vendor.mk),)
+$(call inherit-product, vendor/gapps/arm64/arm64-vendor.mk)
+endif
+endif
+endif
