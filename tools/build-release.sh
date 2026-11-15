@@ -20,9 +20,12 @@ LOG=~/opi4/logs/release-$NAME.log
   lunch $P-trunk_staging-$V || exit 1
   export WITH_GAPPS=false OPI4_FULL_CLOCKS=true
   # 'user' images are signed with our own keys (never with the public AOSP test keys)
+  # (Soong only takes key paths inside the tree: copy them to vendor/opi4-keys, not in any repo)
   if [ "$V" = user ]; then
-    export OPI4_RELEASE_KEYS=${OPI4_RELEASE_KEYS:-$HOME/opi4/keys}
-    [ -f $OPI4_RELEASE_KEYS/platform.pk8 ] || { echo "== no release keys in $OPI4_RELEASE_KEYS"; exit 1; }
+    KEYSRC=${OPI4_KEYS_SRC:-$HOME/opi4/keys}
+    [ -f $KEYSRC/platform.pk8 ] || { echo "== no release keys in $KEYSRC"; exit 1; }
+    mkdir -p vendor/opi4-keys && cp -a $KEYSRC/. vendor/opi4-keys/
+    export OPI4_RELEASE_KEYS=vendor/opi4-keys
   fi
   echo "== $(date) $NAME: $TARGET_PRODUCT-$TARGET_BUILD_VARIANT WITH_GAPPS=$WITH_GAPPS FULL_CLOCKS=$OPI4_FULL_CLOCKS"
   m installclean && time m && time m images && time m sdcard || { echo "== BUILD FAILED"; exit 1; }
