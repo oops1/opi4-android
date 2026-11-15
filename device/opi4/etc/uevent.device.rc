@@ -5,3 +5,16 @@
 /dev/video*                0660   media      media
 /dev/media*                0660   media      media
 /dev/v4l-subdev*           0660   media      media
+
+# 26-pin header (dev build): GPIO, I2C and SPI open to apps
+/dev/gpiochip*             0666   root       root
+/dev/i2c-*                 0666   root       root
+/dev/spidev*               0666   root       root
+/sys/devices/platform/pinctrl/*/gpio/gpio*            value       0666 root root
+/sys/devices/platform/pinctrl/*/gpio/gpio*            direction   0666 root root
+/sys/devices/platform/pinctrl/*/gpio/gpio*            edge        0666 root root
+/sys/devices/platform/pinctrl/*/gpio/gpio*            active_low  0666 root root
+/sys/devices/platform/pinctrl/*/gpiochip*/gpio/gpio*  value       0666 root root
+/sys/devices/platform/pinctrl/*/gpiochip*/gpio/gpio*  direction   0666 root root
+/sys/devices/platform/pinctrl/*/gpiochip*/gpio/gpio*  edge        0666 root root
+/sys/devices/platform/pinctrl/*/gpiochip*/gpio/gpio*  active_low  0666 root root

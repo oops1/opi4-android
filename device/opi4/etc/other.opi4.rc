@@ -9,3 +9,14 @@ on early-init
 on early-init
     write /sys/bus/serial/drivers/hci_uart_bcm/unbind serial0-0
     write /sys/bus/serial/drivers/hci_uart_bcm/bind serial0-0
+
+# 26-pin header (dev build): let apps export GPIOs through the legacy sysfs interface
+on boot
+    chmod 0222 /sys/class/gpio/export
+    chmod 0222 /sys/class/gpio/unexport
+    chmod 0222 /sys/class/pwm/pwmchip0/export
+    chmod 0222 /sys/class/pwm/pwmchip0/unexport
+    chmod 0222 /sys/class/pwm/pwmchip1/export
+    chmod 0222 /sys/class/pwm/pwmchip1/unexport
+    chmod 0222 /sys/class/pwm/pwmchip2/export
+    chmod 0222 /sys/class/pwm/pwmchip2/unexport
