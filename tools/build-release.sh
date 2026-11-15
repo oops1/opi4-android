@@ -28,7 +28,10 @@ LOG=~/opi4/logs/release-$NAME.log
     export OPI4_RELEASE_KEYS=vendor/opi4-keys
   fi
   echo "== $(date) $NAME: $TARGET_PRODUCT-$TARGET_BUILD_VARIANT WITH_GAPPS=$WITH_GAPPS FULL_CLOCKS=$OPI4_FULL_CLOCKS"
-  m installclean && time m && time m images && time m sdcard || { echo "== BUILD FAILED"; exit 1; }
+  # installclean only when switching product/variant (same out dir for opi4 and opi4_tv)
+  STAMP=$OUT/.opi4-release-config; CFG="$P-$V-gapps:$WITH_GAPPS"
+  if [ "$(cat $STAMP 2>/dev/null)" != "$CFG" ]; then m installclean || exit 1; fi
+  time m && echo "$CFG" > $STAMP && time m images && time m sdcard || { echo "== BUILD FAILED"; exit 1; }
   # nothing proprietary may end up in a shared image
   if find $OUT/system $OUT/product $OUT/system_ext $OUT/vendor -iname '*gms*' -o -iname '*gsf*' \
        -o -iname 'Phonesky*' -o -iname 'com.google.android.widevine*' 2>/dev/null | grep -q .; then
