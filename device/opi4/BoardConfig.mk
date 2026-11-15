@@ -36,6 +36,9 @@ ifneq (,$(filter userdebug eng,$(TARGET_BUILD_VARIANT)))
 BOARD_KERNEL_CMDLINE += earlycon=uart8250,mmio32,0xff1a0000
 endif
 
+# Boot screen: one centred logo, no blinking cursor (fbcon has no text: console=ttyS2)
+BOARD_KERNEL_CMDLINE += fbcon=logo-pos:center,logo-count:1 vt.global_cursor_default=0
+
 # Hardware video decoding: ffmpeg_codec2 over the V4L2 request API (rkvdec + Hantro)
 BOARD_FFMPEG_ENABLE_REQUEST_API := true
 BOARD_FFMPEG_KERNEL_HEADERS_DIR := $(BC_PATH)codecs/request_api_headers

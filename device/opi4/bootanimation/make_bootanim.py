@@ -436,7 +436,26 @@ def png_bytes(img):
     return b.getvalue()
 
 
+def write_kernel_logo(path):
+    """Boot logo for fbcon (shown centred from DRM init until SurfaceFlinger takes over):
+    the last intro frame, cropped symmetrically around the screen centre so it lines up
+    with the animation, reduced to <= 224 colours as pnmtologo requires (plain PPM)."""
+    lw, lh = 720, 600
+    box = (W // 2 - lw // 2, H // 2 - lh // 2, W // 2 + lw // 2, H // 2 + lh // 2)
+    img = intro_frame(INTRO - 1).crop(box)
+    img = img.quantize(colors=223, dither=Image.Dither.NONE).convert("RGB")
+    px = np.asarray(img).reshape(-1)
+    with open(path, "w") as f:
+        f.write(f"P3\n# Orange Pi 4 boot logo (make_bootanim.py)\n{lw} {lh}\n255\n")
+        for i in range(0, len(px), 24):
+            f.write(" ".join(map(str, px[i:i + 24])) + "\n")
+    print(path, "colours:", len(set(map(tuple, np.asarray(img).reshape(-1, 3)))))
+
+
 def main():
+    if "--kernel-logo" in sys.argv:
+        write_kernel_logo(os.path.join(HERE, "logo_linux_clut224.ppm"))
+        return
     preview_only = "--preview-only" in sys.argv
     tv = "--tv" in sys.argv
     sfx = "-tv" if tv else ""

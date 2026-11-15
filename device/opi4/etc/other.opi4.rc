@@ -22,3 +22,12 @@ on boot
     chmod 0666 /sys/class/pwm/pwmchip1/pwm0/duty_cycle
     chmod 0666 /sys/class/pwm/pwmchip1/pwm0/polarity
     chmod 0666 /sys/class/pwm/pwmchip1/pwm0/enable
+
+# Debug builds start a shell on the serial console from init.rc, and SystemUI then warns
+# "serial console enabled, performance is impacted". ADB is enough day to day: keep it off
+# unless persist.vendor.opi4.console=1 (kernel messages and U-Boot stay on ttyS2 anyway).
+on boot && property:persist.vendor.opi4.console=0
+    stop console
+
+on property:persist.vendor.opi4.console=1
+    start console

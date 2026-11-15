@@ -74,5 +74,8 @@ PRODUCT_VENDOR_PROPERTIES += \
     persist.vendor.audio.primary.card=1 \
     persist.vendor.audio.primary.device=0 \
 
+# Serial shell off by default (etc/other.opi4.rc)
+PRODUCT_VENDOR_PROPERTIES += persist.vendor.opi4.console=0
+
 # No Vulkan on Midgard: keep HWUI and RenderEngine on Skia/GL
 TARGET_USES_VULKAN := false
