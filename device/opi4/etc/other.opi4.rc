@@ -3,3 +3,9 @@
 # brcmfmac itself is blocklisted for ueventd (modules.blocklist) so it never loads without wcc.
 on early-init
     exec u:r:vendor_modprobe:s0 -- /vendor/bin/modprobe -d /vendor/lib/modules -a brcmfmac-wcc
+
+# hci_uart_bcm is built in and probes before /vendor is mounted, so the BT patch file
+# (brcm/BCM4345C5.hcd in /vendor/etc/firmware) is missing. Rebind once /vendor is there.
+on early-init
+    write /sys/bus/serial/drivers/hci_uart_bcm/unbind serial0-0
+    write /sys/bus/serial/drivers/hci_uart_bcm/bind serial0-0

@@ -1,0 +1,29 @@
+From d2d9214579ece3918a0f029fb7691764727a6307 Mon Sep 17 00:00:00 2001
+From: opi4 <opi4@localhost>
+Date: Sun, 15 Nov 2026 06:02:12 +0500
+Subject: [PATCH] uboot: rockchip: optional rkbin BL31 (RK_BL31_BLOB) for the
+ mainline flow
+
+---
+ platform/uboot/uboot.mk | 5 +++++
+ 1 file changed, 5 insertions(+)
+
+diff --git a/platform/uboot/uboot.mk b/platform/uboot/uboot.mk
+index c6169a9..e8767c2 100644
+--- a/platform/uboot/uboot.mk
++++ b/platform/uboot/uboot.mk
+@@ -80,6 +80,11 @@ UBOOT_BINARY := $(UBOOT_OUT)/u-boot-rockchip.bin
+ ifneq ($(RK_TPL_BLOB),)
+ UMAKE += ROCKCHIP_TPL=$(AOSP_TOP_ABS)/glodroid/bootloader/rockchip-rkbin/$(RK_TPL_BLOB)
+ endif
++# Optional Rockchip BL31 blob instead of upstream TF-A (RK3399: upstream TF-A leaves the PL330
++# DMA controllers unreadable from the normal world, so there is no audio/SPI DMA).
++ifneq ($(RK_BL31_BLOB),)
++UMAKE += BL31=$(AOSP_TOP_ABS)/glodroid/bootloader/rockchip-rkbin/$(RK_BL31_BLOB)
++endif
+ else
+ UBOOT_BINARY := $(UBOOT_OUT)/u-boot-dtb.bin
+ endif
+-- 
+2.34.1
+

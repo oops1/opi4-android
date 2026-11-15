@@ -28,6 +28,8 @@ UBOOT_DEFCONFIG := orangepi-4-rk3399_defconfig
 ATF_PLAT        := rk3399
 RK_MAINLINE_UBOOT := true
 RK_TPL_BLOB     := bin/rk33/rk3399_ddr_800MHz_v1.30.bin
+# Rockchip BL31: upstream TF-A leaves the PL330 DMA controllers secure (no audio)
+RK_BL31_BLOB    := bin/rk33/rk3399_bl31_v1.36.elf
 UBOOT_FRAGMENTS := $(LOCAL_PATH)/uboot.config
 
 # Kernel
