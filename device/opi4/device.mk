@@ -46,6 +46,11 @@ PRODUCT_VENDOR_PROPERTIES += \
     persist.ffmpeg_codec2.rank.audio=16 \
     persist.ffmpeg_codec2.rank.video=128 \
 
+# DRM: GloDroid asks for the HIDL clearkey HAL, which no longer builds on A16, so there was no
+# DRM HAL at all and MediaDrm queries threw (YouTube for Android TV aborted at start).
+# The AIDL ClearKey APEX answers "Widevine unsupported" properly. No Widevine: proprietary.
+PRODUCT_PACKAGES += com.android.hardware.drm.clearkey
+
 # Bluetooth profiles. Since A13 every profile is off unless its sysprop is set, which left
 # only GATT running: BLE keyboards bonded but HID host never connected them.
 # BCM4345C5 is BT 5.0 without ISO channels, so LE Audio stays off. A2DP is software-encoded
