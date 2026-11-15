@@ -1,0 +1,31 @@
+From 43a5b27b02534dd7a963010fa3390ffd3d8cdb45 Mon Sep 17 00:00:00 2001
+From: opi4 <opi4@localhost>
+Date: Sun, 15 Nov 2026 19:14:30 +0500
+Subject: [PATCH] Do not advertise the AV1 decoder
+
+It is software-only (dav1d). Apps such as YouTube prefer AV1 whenever a decoder is listed,
+and on a board without AV1 hardware 1080p AV1 stalls on the first frame.
+---
+ media_codecs_ffmpeg_c2.xml | 6 ------
+ 1 file changed, 6 deletions(-)
+
+diff --git a/media_codecs_ffmpeg_c2.xml b/media_codecs_ffmpeg_c2.xml
+index 26d7d73..6053453 100644
+--- a/media_codecs_ffmpeg_c2.xml
++++ b/media_codecs_ffmpeg_c2.xml
+@@ -74,12 +74,6 @@
+         </MediaCodec>
+ 
+         <!-- video codecs -->
+-        <MediaCodec name="c2.ffmpeg.av1.decoder"   type="video/av01">
+-            <Alias name="OMX.ffmpeg.av1.decoder" />
+-            <Limit name="size" min="2x2" max="2048x2048" />
+-            <Limit name="alignment" value="2x2" />
+-            <Feature name="adaptive-playback" />
+-        </MediaCodec>
+         <MediaCodec name="c2.ffmpeg.h263.decoder"   type="video/3gpp">
+             <Alias name="OMX.ffmpeg.h263.decoder" />
+             <Limit name="size" min="2x2" max="2048x2048" />
+-- 
+2.34.1
+
