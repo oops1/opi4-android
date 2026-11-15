@@ -29,6 +29,11 @@ BOARD_MESA3D_EXTRA_MESON_ARGS := -Dmesa-clc=system -Dprecomp-compiler=system
 # Kernel: stable 6.18.y (linked by setup.sh) + Orange Pi 4 device tree from Armbian
 BOARD_KERNEL_SRC_DIR := glodroid/kernel/mainline
 BOARD_KERNEL_PATCHES_DIRS := $(BC_PATH)kernel-patches
+# Clock caps for a 5 V / 2 A supply (CPU/GPU OPPs halved). Builds for real use and for
+# publication run at full clocks: OPI4_FULL_CLOCKS=true m (needs a 3 A supply).
+ifneq ($(OPI4_FULL_CLOCKS),true)
+BOARD_KERNEL_PATCHES_DIRS += $(BC_PATH)kernel-patches-psu2a
+endif
 
 # Debug console on UART2 at 1.5 Mbaud (same as the stock firmware and U-Boot)
 BOARD_KERNEL_CMDLINE += console=ttyS2,1500000n8

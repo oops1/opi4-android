@@ -46,13 +46,18 @@ GD_NO_DEFAULT_MODEM := true
 
 $(call inherit-product, $(LOCAL_PATH)/device.mk)
 
-# Google apps (MindTheGapps, branch baklava, cloned to vendor/gapps; not part of this repo).
-# Proprietary and not redistributable: build "WITH_GAPPS=false m" for images meant to be shared.
-# The TV variant needs the Google TV set instead, so it is left out there.
+# Google apps, not part of this repo (proprietary, not redistributable): build
+# "WITH_GAPPS=false m" for images meant to be shared.
+#  opi4:    MindTheGapps, branch baklava, cloned to vendor/gapps
+#  opi4_tv: MindTheGapps ATV full zip, unpacked by tools/gen-gapps-atv.py into vendor/gapps-atv
 ifneq ($(WITH_GAPPS),false)
 ifeq ($(filter %_tv,$(TARGET_PRODUCT)),)
 ifneq ($(wildcard vendor/gapps/arm64/arm64-vendor.mk),)
 $(call inherit-product, vendor/gapps/arm64/arm64-vendor.mk)
+endif
+else
+ifneq ($(wildcard vendor/gapps-atv/gapps-atv-vendor.mk),)
+$(call inherit-product, vendor/gapps-atv/gapps-atv-vendor.mk)
 endif
 endif
 endif
