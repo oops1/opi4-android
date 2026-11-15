@@ -1,0 +1,24 @@
+From 0000000000000000000000000000000000000000 Mon Sep 17 00:00:00 2001
+From: opi4 <opi4@localhost>
+Date: Sun, 15 Nov 2026 15:40:00 +0500
+Subject: [PATCH] fbcon: show the boot logo on quiet boots too
+
+GloDroid boots with 'quiet', and fbcon skips the logo then. Kernel messages only go
+to ttyS2 (console=ttyS2), so the screen gets the logo and no text either way.
+---
+diff --git a/drivers/video/fbdev/core/fbcon.c b/drivers/video/fbdev/core/fbcon.c
+index 903823c..96d578e 100644
+--- a/drivers/video/fbdev/core/fbcon.c
++++ b/drivers/video/fbdev/core/fbcon.c
+@@ -1043,9 +1043,6 @@ static void fbcon_init(struct vc_data *vc, bool init)
+ 
+ 	info = fbcon_info_from_console(vc->vc_num);
+ 
+-	if (logo_shown < 0 && console_loglevel <= CONSOLE_LOGLEVEL_QUIET)
+-		logo_shown = FBCON_LOGO_DONTSHOW;
+-
+ 	if (vc != svc || logo_shown == FBCON_LOGO_DONTSHOW ||
+ 	    (info->fix.type == FB_TYPE_TEXT))
+ 		logo = 0;
+-- 
+2.34.1
