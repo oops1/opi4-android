@@ -1,0 +1,4 @@
+# Firmware 7.45.96.2 of the AP6256 (BCM4345/9) never finishes the in-firmware WPA2 4-way
+# handshake (FWSUP), so every connect timed out as "wrong key". Bit 13 = BRCMF_FEAT_FWSUP:
+# let wpa_supplicant do the handshake instead.
+options brcmfmac feature_disable=0x2000
