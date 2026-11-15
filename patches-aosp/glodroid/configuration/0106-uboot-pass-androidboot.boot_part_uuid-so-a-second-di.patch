@@ -1,0 +1,36 @@
+From 932ed5ebcf9bfb35b6a065ed805cc6efd3c6b876 Mon Sep 17 00:00:00 2001
+From: opi4 <opi4@localhost>
+Date: Mon, 16 Nov 2026 00:39:18 +0500
+Subject: [PATCH] uboot: pass androidboot.boot_part_uuid so a second disk
+ cannot hijack first-stage mount
+
+first-stage init matches super/metadata by partition name on any disk. With an
+SD card and the eMMC carrying the same GPT names, booting from eMMC picked the SD's
+super and died ('realpath failed: /dev/block/by-name/super'). Passing the UUID of
+the boot disk's misc partition switches init to strict boot-device matching.
+---
+ platform/uboot/bootscript.cpp | 8 ++++++++
+ 1 file changed, 8 insertions(+)
+
+diff --git a/platform/uboot/bootscript.cpp b/platform/uboot/bootscript.cpp
+index acbbdf2..25aa523 100644
+--- a/platform/uboot/bootscript.cpp
++++ b/platform/uboot/bootscript.cpp
+@@ -113,6 +113,14 @@ FUNC_BEGIN(bootcmd_prepare_env)
+   setenv bootdevice_path STRESC(__SYSFS_MMC1_PATH__);
+  fi;
+  FEXTENV(bootargs, " androidboot.boot_devices=\${bootdevice_path}") ;
++ /* Also pass the UUID of a partition on the boot disk: first-stage init then takes
++  * super/metadata only from that disk ("strict" mode), so a second card with the same
++  * partition names (an SD card while booting from eMMC, or vice versa) cannot hijack
++  * the boot. */
++ if part number mmc \${mmc_bootdev} misc misc_pn && part uuid mmc \${mmc_bootdev}:\${misc_pn} boot_part_uuid;
++ then
++  FEXTENV(bootargs, " androidboot.boot_part_uuid=\${boot_part_uuid}") ;
++ fi;
+ FUNC_END()
+ 
+ FUNC_BEGIN(bootcmd_start)
+-- 
+2.34.1
+
