@@ -3,9 +3,13 @@
 // Google apps for images that ship without them (user builds have no root, no recovery).
 //
 // opi4_gapps (service, after boot) watches removable storage for MindTheGapps-*.zip,
-// unpacks its system/ tree to /data/vendor/gapps/root and asks init for a reboot.
+// packs its system/ tree into an ext4 image in /data/vendor/gapps and asks init for a
+// reboot. Apps added after the first boot get no default runtime permissions (those are
+// granted on first boot / OTA only), so it also asks for the permission state to be reset
+// once (persist.vendor.opi4.gapps.regrant, opi4_gapps_reboot.rc).
 // A file named REMOVE-GAPPS on the storage removes them again.
-// init overlays the tree on the app directories at post-fs-data (opi4_gapps.rc).
+// init loop-mounts the image and overlays it on the app directories at post-fs-data
+// (opi4_gapps.rc).
 // The verified system partitions are never written.
 
 #include <dirent.h>
@@ -79,7 +83,7 @@ static bool MakeImage() {
     unlink(tmp.c_str());
     if (!Run({"/vendor/bin/mke2fs", "-q", "-t", "ext4", "-b", "4096", "-O", "^has_journal",
               "-m", "0", "-L", "gapps", tmp, std::to_string(blocks)}) ||
-        !Run({"/vendor/bin/e2fsdroid", "-f", kStage, "-a", "/mnt/vendor/gapps", tmp})) {
+        !Run({"/vendor/bin/e2fsdroid", "-e", "-f", kStage, "-a", "/mnt/vendor/gapps", tmp})) {
         unlink(tmp.c_str());
         return false;
     }
@@ -231,6 +235,7 @@ static int DoInstall() {
             android::base::WriteStringToFile(stamp, kStamp);
             sync();
             android::base::SetProperty("vendor.opi4.gapps.state", "installed");
+            android::base::SetProperty("persist.vendor.opi4.gapps.regrant", "1");
             Reboot("gapps-installed");
             return 0;
         }

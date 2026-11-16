@@ -1,2 +1,3 @@
 vendor.opi4.gapps.     u:object_r:vendor_opi4_gapps_prop:s0
+persist.vendor.opi4.gapps. u:object_r:vendor_opi4_gapps_prop:s0
 persist.vendor.ffmpeg_codec2. u:object_r:vendor_ffmpeg_codec2_prop:s0

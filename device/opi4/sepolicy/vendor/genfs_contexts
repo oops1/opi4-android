@@ -12,3 +12,9 @@ genfscon sysfs /devices/platform/ff770000.syscon/ff770000.syscon:usb2phy@e450/ex
 genfscon sysfs /devices/platform/ff770000.syscon/ff770000.syscon:usb2phy@e460/extcon u:object_r:sysfs_extcon:s0
 # RK808 RTC wakeup source (system_suspend reads the names)
 genfscon sysfs /devices/platform/ff3c0000.i2c/i2c-0/0-001b/rk808-rtc.5.auto/wakeup u:object_r:sysfs_wakeup:s0
+# Other wakeup sources listed in /sys/class/wakeup (system_suspend reads their stats;
+# USB ones depend on the port and only cost statistics)
+genfscon sysfs /devices/platform/ff3c0000.i2c/i2c-0/0-001b/wakeup     u:object_r:sysfs_wakeup:s0
+genfscon sysfs /devices/platform/ff3c0000.i2c/i2c-0/0-001b/rk808-rtc.5.auto/rtc/rtc0/alarmtimer.6.auto/wakeup u:object_r:sysfs_wakeup:s0
+genfscon sysfs /devices/platform/ff180000.serial/ff180000.serial:0/ff180000.serial:0.0/serial0/serial0-0/wakeup u:object_r:sysfs_wakeup:s0
+genfscon sysfs /devices/platform/gpio-keys/wakeup                     u:object_r:sysfs_wakeup:s0

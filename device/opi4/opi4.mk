@@ -86,7 +86,7 @@ endif
 else
 # Shared images: the user adds Google apps by plugging in storage with the MindTheGapps
 # zip (device/opi4/gapps). The overlay targets must exist in the image.
-PRODUCT_PACKAGES += opi4_gapps mke2fs.vendor e2fsdroid.vendor
+PRODUCT_PACKAGES += opi4_gapps opi4_gapps_reboot.rc mke2fs.vendor e2fsdroid.vendor
 GAPPS_KEEP := $(LOCAL_PATH)/gapps/keep
 PRODUCT_COPY_FILES += \
     $(GAPPS_KEEP):$(TARGET_COPY_OUT_PRODUCT)/app/.keep \

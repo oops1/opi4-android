@@ -41,6 +41,11 @@ dontaudit {
   mediaswcodec
   cameraserver
 } vendor_default_prop:file { getattr open read map };
+dontaudit hal_graphics_allocator_default default_prop:file { getattr open read map };
+
+# Statistics only: the HID country attribute
+# InputReader probes on Bluetooth/USB keyboards.
+dontaudit system_server sysfs:file { getattr open read };
 
 # --- Video decoders (rkvdec, Hantro): /dev/video* + /dev/media* are video_device
 # (file_contexts); mediacodec already has rw access to it.

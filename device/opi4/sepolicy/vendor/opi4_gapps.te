@@ -27,5 +27,20 @@ allow init opi4_gapps_data_file:dir r_dir_perms;
 allow init opi4_gapps_data_file:file { r_file_perms };
 allow kernel opi4_gapps_data_file:file { read getattr };
 allow init { system_file system_lib_file }:filesystem { relabelto relabelfrom associate };
+allow init { system_file system_lib_file }:filesystem { mount unmount };
 allow init system_lib_file:dir mounton;
 allow init mnt_vendor_file:dir mounton;
+
+# mke2fs probes /system/etc/mke2fs.conf (built-in defaults apply), swaps and block
+# devices to check the target is not in use: a plain image file, nothing to grant
+dontaudit opi4_gapps system_file:file { getattr open read };
+dontaudit opi4_gapps proc_swaps:file { getattr open read };
+dontaudit opi4_gapps block_device:dir search;
+
+# context= mounts carry the system_file label on their superblock too: let everything
+# statfs the app directories as on the plain partitions
+allow domain { system_file system_lib_file }:filesystem getattr;
+# files on those mounts (context= label) sit on a superblock with the same label
+allow { system_file system_lib_file } self:filesystem associate;
+# installd asks for quota usage on the overlaid app directories (none kept there)
+dontaudit installd { system_file system_lib_file }:filesystem quotaget;

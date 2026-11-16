@@ -1,0 +1,21 @@
+# Reboot once the Google apps installer (vendor opi4_gapps) has built or removed its image.
+# Lives on system_ext: init runs these commands itself (vendor scripts run as vendor_init,
+# which may not set sys.powerctl).
+on property:vendor.opi4.gapps.reboot=gapps-installed
+    setprop sys.powerctl reboot,gapps
+on property:vendor.opi4.gapps.reboot=gapps-removed
+    setprop sys.powerctl reboot,gapps
+
+# Google apps added after the first boot get their default runtime permissions (Bluetooth
+# for the remote service, location, ...) only when the framework (re)grants defaults, which
+# it does on first boot or after an OTA, i.e. when it has no permission state for the
+# current build. Drop user 0's permission state (Android 16 keeps it with the default-grant
+# fingerprint in access.abx, older releases in runtime-permissions.xml, each with a reserve
+# copy) once after an install, before zygote starts: persist props are loaded at
+# post-fs-data, load-bpf-programs comes before zygote-start.
+on load-bpf-programs && property:persist.vendor.opi4.gapps.regrant=1
+    rm /data/misc_de/0/apexdata/com.android.permission/access.abx
+    rm /data/misc_de/0/apexdata/com.android.permission/access.abx.reservecopy
+    rm /data/misc_de/0/apexdata/com.android.permission/runtime-permissions.xml
+    rm /data/misc_de/0/apexdata/com.android.permission/runtime-permissions.xml.reservecopy
+    setprop persist.vendor.opi4.gapps.regrant 0

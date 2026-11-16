@@ -15,3 +15,10 @@ cc_binary {
     init_rc: ["opi4_gapps.rc"],
     cflags: ["-Wall", "-Werror"],
 }
+
+prebuilt_etc {
+    name: "opi4_gapps_reboot.rc",
+    src: "opi4_gapps_reboot.rc",
+    sub_dir: "init",
+    system_ext_specific: true,
+}
