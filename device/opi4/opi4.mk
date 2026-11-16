@@ -51,6 +51,12 @@ GD_MEDIACODECS_FILE := $(LOCAL_PATH)/codecs/media_codecs.xml
 
 $(call inherit-product, $(LOCAL_PATH)/device.mk)
 
+# Test builds of 'user' images (never for publication): USB debugging on from the first
+# boot (still with the RSA confirmation on screen) to read logcat while testing enforcing.
+ifeq ($(OPI4_TEST_ADB),true)
+PRODUCT_PRODUCT_PROPERTIES += persist.sys.usb.config=adb
+endif
+
 # Release builds are signed with our own keys instead of AOSP's public test keys
 # (OPI4_RELEASE_KEYS=<dir with releasekey/platform/shared/media/networkstack/... .pk8+.x509.pem>,
 # made with development/tools/make_key, kept outside the repo).

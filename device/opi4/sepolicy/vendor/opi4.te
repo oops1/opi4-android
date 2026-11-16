@@ -55,6 +55,7 @@ get_prop(hal_usb_gadget_default, usb_control_prop)
 
 # --- Gatekeeper also serves ISharedSecret/gatekeeper (labelled hal_gatekeeper_service in
 # service_contexts, as on the emulator), so keystore's shared-secret negotiation reaches it.
+hal_client_domain(keystore, hal_gatekeeper)
 
 # --- Kernel loads Wi-Fi/BT firmware from /vendor/etc/firmware
 # (firmware_class.path=/vendor/etc/firmware).

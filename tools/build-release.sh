@@ -9,6 +9,7 @@ set -o pipefail
 P=${1:?product}; V=${2:?variant}
 NAME=${3:-opi4-android16-${P#opi4_}-$(date +%Y%m%d)}
 [ "$P" = opi4 ] && NAME=${3:-opi4-android16-tablet-$(date +%Y%m%d)}
+[ "$OPI4_TEST_ADB" = true ] && NAME=$NAME-TESTADB   # never publish these
 DEST=${RELEASE_DIR:-/mnt/f/OrangePi4/release}
 mkdir -p ~/opi4/logs "$DEST"
 LOG=~/opi4/logs/release-$NAME.log
@@ -29,7 +30,7 @@ LOG=~/opi4/logs/release-$NAME.log
   fi
   echo "== $(date) $NAME: $TARGET_PRODUCT-$TARGET_BUILD_VARIANT WITH_GAPPS=$WITH_GAPPS FULL_CLOCKS=$OPI4_FULL_CLOCKS"
   # installclean only when switching product/variant (same out dir for opi4 and opi4_tv)
-  STAMP=$OUT/.opi4-release-config; CFG="$P-$V-gapps:$WITH_GAPPS"
+  STAMP=$OUT/.opi4-release-config; CFG="$P-$V-gapps:$WITH_GAPPS-testadb:$OPI4_TEST_ADB"
   if [ "$(cat $STAMP 2>/dev/null)" != "$CFG" ]; then m installclean || exit 1; fi
   time m && echo "$CFG" > $STAMP && time m images && time m sdcard || { echo "== BUILD FAILED"; exit 1; }
   # nothing proprietary may end up in a shared image
