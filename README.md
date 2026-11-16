@@ -93,3 +93,27 @@ them with the public AOSP test keys.
 | `tools/` | build, packaging and helper scripts |
 | `docs/` | installation guides (RU/EN) |
 | `hardware/case/` | OpenSCAD case and fan mount, ready-to-print STL files |
+
+## Лицензия / License
+
+Всё, что создано в этом проекте, — скрипты, конфигурация устройства, установщик GApps,
+SELinux‑политика, инструкции, загрузочная анимация, модели корпуса — распространяется по
+лицензии **[Apache 2.0](LICENSE)**, как AOSP и GloDroid. Исключения — чужой код и прошивки,
+у них остаются свои лицензии:
+
+Everything created in this project — scripts, device configuration, the GApps installer, SELinux
+policy, guides, boot animation, case models — is licensed under **[Apache 2.0](LICENSE)**, like
+AOSP and GloDroid. Exceptions are third-party code and firmware, which keep their own licenses:
+
+| Path | License |
+|---|---|
+| `device/opi4/kernel-patches*/` | GPL-2.0 — patches to the Linux kernel (partly from [Armbian](https://github.com/armbian/build)) |
+| `patches-aosp/glodroid/bootloader/u-boot/` | GPL-2.0+ — patch to U-Boot (from Armbian) |
+| other `patches-aosp/` | the license of the patched project (GloDroid: Apache-2.0) |
+| `device/opi4/firmware/` | proprietary firmware, redistributable under the vendors' terms: Broadcom/Cypress Wi‑Fi/BT (AP6256), Rockchip `dptx.bin` — from [armbian/firmware](https://github.com/armbian/firmware), see `LICENCE.cypress`, `LICENCE.broadcom_bcm43xx` and `LICENCE.rockchip` in [linux-firmware](https://git.kernel.org/pub/scm/linux/kernel/git/firmware/linux-firmware.git) |
+
+The kernel in the release images is built from Linux `v6.18.63` (kernel.org stable) with
+`device/opi4/kernel-patches/` and `device/opi4/kernel.config` (on top of the arm64 defconfig
+and the GloDroid a-16 kernel fragments) from the matching commit of this repository; the
+release tag marks that commit. Google services and Widevine are not
+part of this project or of its images.
