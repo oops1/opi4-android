@@ -4,7 +4,8 @@
 # Usage: bash tools/build-release.sh <opi4|opi4_tv> <userdebug|user> [name]
 #   opi4 userdebug   -> "tablet" image, adb root for tinkering
 #   opi4_tv user     -> TV release image, no root, SELinux enforcing
-# Output: /mnt/f/OrangePi4/release/<name>.img.xz (+ .sha256), log: ~/opi4/logs/release-<name>.log
+# Output: /mnt/f/OrangePi4/release/<name>-sdcard.img.xz, <name>-emmc.zip, <name>.sha256
+# (tools/package-release.sh), log: ~/opi4/logs/release-<name>.log
 set -o pipefail
 P=${1:?product}; V=${2:?variant}
 NAME=${3:-opi4-android16-${P#opi4_}-$(date +%Y%m%d)}
@@ -20,6 +21,9 @@ LOG=~/opi4/logs/release-$NAME.log
   . build/envsetup.sh >/dev/null
   lunch $P-trunk_staging-$V || exit 1
   export WITH_GAPPS=false OPI4_FULL_CLOCKS=true
+  # A build number per build changes the fingerprint, so a flashed update counts as an
+  # upgrade (package rescans, default permission grants); neutral user/host in the props.
+  export BUILD_NUMBER=${BUILD_NUMBER:-$(date +%Y%m%d.%H%M)} BUILD_USERNAME=opi4 BUILD_HOSTNAME=opi4-build
   # 'user' images are signed with our own keys (never with the public AOSP test keys)
   # (Soong only takes key paths inside the tree: copy them to vendor/opi4-keys, not in any repo)
   if [ "$V" = user ]; then
@@ -38,9 +42,8 @@ LOG=~/opi4/logs/release-$NAME.log
        -o -iname 'Phonesky*' -o -iname 'com.google.android.widevine*' 2>/dev/null | grep -q .; then
     echo "== PROPRIETARY FILES FOUND, refusing to package"; exit 1
   fi
-  xz -T0 -6 -c $OUT/sdcard.img > "$DEST/$NAME.img.xz"
-  (cd "$DEST" && sha256sum "$NAME.img.xz" > "$NAME.img.xz.sha256")
-  ls -la "$DEST/$NAME".img.xz*
+  # SD card image + eMMC kit + checksums (opi4 and opi4_tv share $OUT: package right away)
+  RELEASE_DIR="$DEST" bash ~/opi4/opi4-android/tools/package-release.sh "$NAME" "$OUT" || exit 1
   echo "== $(date) done"
 } > $LOG 2>&1
 rc=$?
