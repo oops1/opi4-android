@@ -27,7 +27,8 @@ done
     "$HOME/aosp/glodroid/configuration/platform/tools/flash-all.sh" > "$T/$NAME-emmc/flash-all.sh"
 chmod +x "$T/$NAME-emmc/flash-all.sh"
 cp "$PORT/device/opi4/release/flash-all.bat" "$T/$NAME-emmc/"
-cp "$PORT/docs/INSTALL.ru.md" "$T/$NAME-emmc/"
+cp "$PORT/docs/INSTALL.ru.md" "$PORT/docs/INSTALL.en.md" "$T/$NAME-emmc/"
+cp -r "$PORT/docs/img" "$T/$NAME-emmc/"
 rm -f "$T/$NAME-emmc/"fastboot* "$T/$NAME-emmc/"adb* 2>/dev/null || true   # users bring their own platform-tools
 (cd "$T" && rm -f "$DEST/$NAME-emmc.zip" && zip -qr -1 "$DEST/$NAME-emmc.zip" "$NAME-emmc")
 
